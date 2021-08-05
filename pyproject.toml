@@ -19,6 +19,7 @@ exclude = '''
 )
 '''
 include = '\.pyi?$'
+skip-string-normalization = true
 target-version = ['py38']
 
 # black defaults to 88 characters per line
