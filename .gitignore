@@ -1,6 +1,7 @@
 # for this project
 chromedriver
 .tmp
+results
 
 # conventional config starts from below
 
