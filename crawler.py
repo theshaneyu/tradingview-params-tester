@@ -2,10 +2,10 @@ import os
 import sys
 import time
 import base64
+import logging
 import traceback
 
-from constant import PARAMS_INDEX_MAPPING
-from utils import load_cookie, save_cookie, save_screenshot_as_png
+from typing import Dict, Literal
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -15,7 +15,8 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
 
-from typing import Dict, Literal
+from constant import PARAMS_INDEX_MAPPING
+from utils import load_cookie, save_cookie, save_screenshot_as_png
 
 
 URL = 'https://tw.tradingview.com/chart/Iyu69JVU/'
@@ -49,7 +50,7 @@ class Crawler:
 
     def _wait_and_click(
         self, driver: WebDriver, path: str, by: Literal['xpath', 'css'] = 'xpath'
-    ):
+    ) -> None:
         WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable(
                 (By.XPATH, path) if by == 'xpath' else (By.CSS_SELECTOR, path)
@@ -67,7 +68,7 @@ class Crawler:
 
     def _save_chart_as_png(
         self, driver: WebDriver, canvas_element: WebElement, filename: str
-    ):
+    ) -> None:
         """
         docstring
         """
@@ -186,9 +187,12 @@ class Crawler:
             _ = input('\nPress any key to exit 🎉')
             # sys.exit()
 
-        except Exception as e:
-            if type(e) is not SystemExit:
-                traceback.print_exc()
+        except SystemExit:
+            sys.exit()
+
+        except Exception:
+            logging.exception(traceback.format_exc())
+            traceback.print_exc()
             sys.exit()
 
 
