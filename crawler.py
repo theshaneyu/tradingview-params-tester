@@ -16,7 +16,13 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
 
 from constants import EXECUTION_TIME
-from utils import append_params_csv, load_cookie, save_cookie, save_screenshot_as_png
+from utils import (
+    append_params_csv,
+    load_cookie,
+    save_cookie,
+    save_performance_summary_to_csv,
+    save_screenshot_as_png,
+)
 
 
 URL = 'https://tw.tradingview.com/chart/Iyu69JVU/'
@@ -174,9 +180,9 @@ class Crawler:
                     )
                 ).get_attribute('value')
 
-            # click on `摘要`
+            # click on `概要`
             self._wait_and_click(
-                driver, 'div.backtesting-select-wrapper > ul > :first-child', by='css'
+                driver, '//*[@id="bottom-area"]/div[4]/div[1]/div[6]/ul/li[1]'
             )
             sleep(0.5)
 
@@ -191,21 +197,34 @@ class Crawler:
             win_rate = str(float(win_rate.replace(' %', '')) / 100.0)
             append_params_csv(params, profit, win_rate)
 
+            # format a params filename string
+            params_filename = '{}_{}_{}_{}'.format(
+                params['period'],
+                params['amplifier'],
+                str(params['long_take_profit']).replace('.', '-'),
+                str(params['short_take_profit']).replace('.', '-'),
+            )
+
             # save the entire backtest results div as PNG screenshot
             backtest_results_element = driver.find_element_by_css_selector(
                 '#bottom-area > div.bottom-widgetbar-content.backtesting > div.backtesting-content-wrapper'
             )
-            save_screenshot_as_png(
-                driver,
-                backtest_results_element,
-                '{}_{}_{}_{}.png'.format(
-                    params['period'],
-                    params['amplifier'],
-                    str(params['long_take_profit']).replace('.', '-'),
-                    str(params['short_take_profit']).replace('.', '-'),
-                ),
-            )
+            save_screenshot_as_png(driver, backtest_results_element, params_filename)
             print('done saving chart as PNG')
+
+            # click on `績效摘要`
+            self._wait_and_click(
+                driver, '//*[@id="bottom-area"]/div[4]/div[1]/div[6]/ul/li[2]'
+            )
+            sleep(0.5)
+
+            # save `績效摘要`
+            performance_summary_element = driver.find_element_by_xpath(
+                '//*[@id="bottom-area"]/div[4]/div[3]/div/div/div/table'
+            )
+            save_performance_summary_to_csv(
+                performance_summary_element, params_filename
+            )
 
             _ = input('\nPress any key to exit 🎉')
             # sys.exit()
