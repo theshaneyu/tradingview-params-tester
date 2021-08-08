@@ -1,9 +1,9 @@
 import os
 import sys
-import time
 import base64
 import logging
 import traceback
+from time import sleep
 
 from typing import Dict, Literal
 
@@ -15,8 +15,8 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
 
-from constant import PARAMS_INDEX_MAPPING
-from utils import load_cookie, save_cookie, save_screenshot_as_png
+from constants import EXECUTION_TIME
+from utils import append_params_csv, load_cookie, save_cookie, save_screenshot_as_png
 
 
 URL = 'https://tw.tradingview.com/chart/Iyu69JVU/'
@@ -25,12 +25,19 @@ URL = 'https://tw.tradingview.com/chart/Iyu69JVU/'
 # COOKIE_PATH = '/tmp/cookie'
 COOKIE_PATH = os.path.join('.tmp', 'cookie')
 
+PARAMS_INDEX_MAPPING = {
+    '2': 'period',
+    '4': 'amplifier',
+    '6': 'long_take_profit',
+    '8': 'short_take_profit',
+}
+
 
 class Crawler:
     def __init__(self) -> None:
-        self._check_driver_and_cookie_folders()
+        self._create_files_and_folders()
 
-    def _check_driver_and_cookie_folders(self) -> None:
+    def _create_files_and_folders(self) -> None:
         # check chromedriver's existence
         files = os.listdir('chromedriver')
         if len(files) != 1:
@@ -44,9 +51,27 @@ class Crawler:
         # check results folder
         if not os.path.exists('results'):
             os.makedirs('results')
-            os.makedirs(os.path.join('results', 'charts'))
-            os.makedirs(os.path.join('results', 'performance'))
-            os.makedirs(os.path.join('results', 'transactions'))
+        if not os.path.exists(os.path.join('results', EXECUTION_TIME)):
+            os.makedirs(os.path.join('results', EXECUTION_TIME))
+            os.makedirs(os.path.join('results', EXECUTION_TIME, 'params'))
+            os.makedirs(os.path.join('results', EXECUTION_TIME, 'charts'))
+            os.makedirs(os.path.join('results', EXECUTION_TIME, 'performance'))
+            os.makedirs(os.path.join('results', EXECUTION_TIME, 'transactions'))
+
+        # add header to params csv
+        with open(
+            os.path.join(
+                'results',
+                EXECUTION_TIME,
+                'params',
+                '{}.csv'.format(EXECUTION_TIME),
+            ),
+            'w',
+            encoding='utf8',
+        ) as wf:
+            wf.write(
+                'Period,Amplification,LongTakeProfit,ShortTakeProfit,Profit,WinRate\n'
+            )
 
     def _wait_and_click(
         self, driver: WebDriver, path: str, by: Literal['xpath', 'css'] = 'xpath'
@@ -87,7 +112,7 @@ class Crawler:
             options = webdriver.ChromeOptions()
             options.add_experimental_option('excludeSwitches', ['enable-logging'])
             # options.add_argument('headless')
-            options.add_argument('window-size=1100,1390')
+            options.add_argument('window-size=1010,1390')
 
             driver = webdriver.Chrome(
                 executable_path=self.chromedriver_path, options=options
@@ -105,7 +130,7 @@ class Crawler:
             driver.get(URL)
 
             # for i in range(3):
-            #     time.sleep(1)
+            #     sleep(1)
             #     print(i)
 
             # hover over the FDC_NQ area in order to show the gearwheel
@@ -114,7 +139,7 @@ class Crawler:
             fdc_nq_element = driver.find_element_by_xpath(fdc_nq_xpath)
             # print(type(fdc_nq_element))
             ActionChains(driver).move_to_element(fdc_nq_element).perform()
-            time.sleep(1)
+            sleep(1)
             print('done hover')
 
             # click the gearwheel to enter params adjustment
@@ -122,7 +147,7 @@ class Crawler:
                 driver,
                 '/html/body/div[2]/div[1]/div[2]/div[1]/div/table/tr[1]/td[2]/div/div[1]/div[2]/div[2]/div[3]/div[1]/div[2]/div/div[2]',
             )
-            time.sleep(1)
+            sleep(1)
             print('done clicking')
 
             # hover over the params' span to show the add button
@@ -130,17 +155,18 @@ class Crawler:
                 '//*[@id="overlap-manager-root"]/div/div/div[1]/div/div[3]/div/div[2]/div/span'
             )
             ActionChains(driver).move_to_element(period_adjustment_element).perform()
-            time.sleep(1)
+            sleep(0.5)
 
             # click the add button
             self._wait_and_click(
                 driver,
                 '//*[@id="overlap-manager-root"]/div/div/div[1]/div/div[3]/div/div[2]/div/span/span[2]/div/button[1]',
             )
-            time.sleep(1)
+            sleep(1.5)
 
             # track the current params
             params: Dict[str, str] = {}
+
             for index in ['2', '4', '6', '8']:
                 params[PARAMS_INDEX_MAPPING[index]] = driver.find_element_by_xpath(
                     '//*[@id="overlap-manager-root"]/div/div/div[1]/div/div[3]/div/div[{}]/div/span/span[1]/input'.format(
@@ -148,25 +174,22 @@ class Crawler:
                     )
                 ).get_attribute('value')
 
-            # period = driver.find_element_by_xpath(
-            #     '//*[@id="overlap-manager-root"]/div/div/div[1]/div/div[3]/div/div[2]/div/span/span[1]/input'
-            # ).get_attribute('value')
-            # period = driver.find_element_by_xpath(
-            #     '//*[@id="overlap-manager-root"]/div/div/div[1]/div/div[3]/div/div[4]/div/span/span[1]/input'
-            # ).get_attribute('value')
-            # period = driver.find_element_by_xpath(
-            #     '//*[@id="overlap-manager-root"]/div/div/div[1]/div/div[3]/div/div[6]/div/span/span[1]/input'
-            # ).get_attribute('value')
-            # period = driver.find_element_by_xpath(
-            #     '//*[@id="overlap-manager-root"]/div/div/div[1]/div/div[3]/div/div[8]/div/span/span[1]/input'
-            # ).get_attribute('value')
-
-            # sys.exit()
-
             # click on `摘要`
             self._wait_and_click(
                 driver, 'div.backtesting-select-wrapper > ul > :first-child', by='css'
             )
+            sleep(0.5)
+
+            # save profit and win rate data
+            profit = driver.find_element_by_xpath(
+                '//*[@id="bottom-area"]/div[4]/div[3]/div/div/div[1]/div[1]/strong'
+            ).text
+            profit = profit.replace('$ ', '')
+            win_rate = driver.find_element_by_xpath(
+                '//*[@id="bottom-area"]/div[4]/div[3]/div/div/div[1]/div[3]/strong'
+            ).text
+            win_rate = str(float(win_rate.replace(' %', '')) / 100.0)
+            append_params_csv(params, profit, win_rate)
 
             # save the entire backtest results div as PNG screenshot
             backtest_results_element = driver.find_element_by_css_selector(
@@ -178,8 +201,8 @@ class Crawler:
                 '{}_{}_{}_{}.png'.format(
                     params['period'],
                     params['amplifier'],
-                    params['long_take_profit'].replace('.', '-'),
-                    params['short_take_profit'].replace('.', '-'),
+                    str(params['long_take_profit']).replace('.', '-'),
+                    str(params['short_take_profit']).replace('.', '-'),
                 ),
             )
             print('done saving chart as PNG')
