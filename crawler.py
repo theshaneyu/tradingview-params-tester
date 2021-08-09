@@ -39,11 +39,25 @@ INDEX_PARAMS_MAPPING = {
 
 SAVE_EXTRA = False
 
-BASE_PARAMS: Dict[str, float] = {
-    'period': 1,
-    'amplification': 0.1,
-    'long_take_profit': 50,
-    'short_take_profit': 50,
+PARAMS_LOWER_LIMITS: Dict[str, float] = {
+    'period': 4.0,
+    'amplification': 2.0,
+    'long_take_profit': 100.0,
+    'short_take_profit': 100.0,
+}
+
+PARAMS_UPPER_LIMITS = {
+    'period': 24.0,
+    'amplification': 6.0,
+    'long_take_profit': 750.0,
+    'short_take_profit': 750.0,
+}
+
+ITERATION_SIZE = {
+    'period': 1.0,
+    'amplification': 0.2,
+    'long_take_profit': 5.0,
+    'short_take_profit': 5.0,
 }
 
 
@@ -64,7 +78,10 @@ class Crawler:
         )
 
     def _hover_fdc_nq(self, sec_to_sleep: float = 0) -> None:
-        fdc_nq_xpath = '/html/body/div[2]/div[1]/div[2]/div[1]/div/table/tr[1]/td[2]/div/div[1]/div[2]/div[2]/div[2]/div[1]'
+        fdc_nq_xpath = (
+            '/html/body/div[2]/div[1]/div[2]/div[1]/div/'
+            'table/tr[1]/td[2]/div/div[1]/div[2]/div[2]/div[2]/div[1]'
+        )
         check_if_visible(self.driver, fdc_nq_xpath)
         fdc_nq_element = self.driver.find_element_by_xpath(fdc_nq_xpath)
         ActionChains(self.driver).move_to_element(fdc_nq_element).perform()
@@ -76,7 +93,8 @@ class Crawler:
         wait_and_click(
             self.driver,
             (
-                '/html/body/div[2]/div[1]/div[2]/div[1]/div/table/tr[1]/td[2]/div/div[1]/div[2]/div[2]/div[2]/div[1]/div[2]/div/div[2]'
+                '/html/body/div[2]/div[1]/div[2]/div[1]/div/table/tr[1]/'
+                'td[2]/div/div[1]/div[2]/div[2]/div[2]/div[1]/div[2]/div/div[2]'
             ),
         )
         if sec_to_sleep != 0:
@@ -93,7 +111,9 @@ class Crawler:
             )
             input_element.send_keys(Keys.CONTROL + "a")
             input_element.send_keys(Keys.DELETE)
-            input_element.send_keys(str(BASE_PARAMS[INDEX_PARAMS_MAPPING[index]]))
+            input_element.send_keys(
+                str(PARAMS_LOWER_LIMITS[INDEX_PARAMS_MAPPING[index]])
+            )
             sleep(0.5)
 
     def _hover_params_input(self, sec_to_sleep: float = 0) -> None:
@@ -197,14 +217,23 @@ class Crawler:
             # reset all params
             self._reset_params()
 
+            # track the current params
+            # period, amplification, long_take_profit, short_take_profit
+            current_params = self._get_current_params()
+
+            # while current_params['period'] < PARAMS_UPPER_LIMITS['period']:
+            #     while current_params['amplification'] < PARAMS_UPPER_LIMITS['amplification']:
+            #         while current_params['long_take_profit'] < PARAMS_UPPER_LIMITS['long_take_profit']:
+            #             while current_params['short_take_profit'] < PARAMS_UPPER_LIMITS['short_take_profit']:
+
+            # track the current params
+            current_params = self._get_current_params()
+
             # hover over the params' span to show the increase button
             self._hover_params_input(sec_to_sleep=0.5)
 
             # click the increase button
             self._click_params_increase(sec_to_sleep=1.5)
-
-            # track the current params
-            current_params = self._get_current_params()
 
             # click on `概要` bullton
             self._click_summary(sec_to_sleep=0.5)
