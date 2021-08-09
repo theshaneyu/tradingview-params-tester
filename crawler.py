@@ -140,7 +140,10 @@ class Crawler:
             #     print(i)
 
             # hover over the FDC_NQ area in order to show the gearwheel
-            fdc_nq_xpath = '/html/body/div[2]/div[1]/div[2]/div[1]/div/table/tr[1]/td[2]/div/div[1]/div[2]/div[2]/div[3]/div[1]'
+            fdc_nq_xpath = (
+                '/html/body/div[2]/div[1]/div[2]/div[1]/div/table'
+                '/tr[1]/td[2]/div/div[1]/div[2]/div[2]/div[3]/div[1]'
+            )
             self._check_if_visible(driver, fdc_nq_xpath)
             fdc_nq_element = driver.find_element_by_xpath(fdc_nq_xpath)
             # print(type(fdc_nq_element))
@@ -151,14 +154,20 @@ class Crawler:
             # click the gearwheel to enter params adjustment
             self._wait_and_click(
                 driver,
-                '/html/body/div[2]/div[1]/div[2]/div[1]/div/table/tr[1]/td[2]/div/div[1]/div[2]/div[2]/div[3]/div[1]/div[2]/div/div[2]',
+                (
+                    '/html/body/div[2]/div[1]/div[2]/div[1]/div/table/tr[1]/td[2]'
+                    '/div/div[1]/div[2]/div[2]/div[3]/div[1]/div[2]/div/div[2]'
+                ),
             )
             sleep(1)
             print('done clicking')
 
             # hover over the params' span to show the add button
             period_adjustment_element = driver.find_element_by_xpath(
-                '//*[@id="overlap-manager-root"]/div/div/div[1]/div/div[3]/div/div[2]/div/span'
+                (
+                    '//*[@id="overlap-manager-root"]/'
+                    'div/div/div[1]/div/div[3]/div/div[2]/div/span'
+                )
             )
             ActionChains(driver).move_to_element(period_adjustment_element).perform()
             sleep(0.5)
@@ -166,7 +175,10 @@ class Crawler:
             # click the add button
             self._wait_and_click(
                 driver,
-                '//*[@id="overlap-manager-root"]/div/div/div[1]/div/div[3]/div/div[2]/div/span/span[2]/div/button[1]',
+                (
+                    '//*[@id="overlap-manager-root"]/div/div/div[1]'
+                    '/div/div[3]/div/div[2]/div/span/span[2]/div/button[1]'
+                ),
             )
             sleep(1.5)
 
@@ -175,8 +187,11 @@ class Crawler:
 
             for index in ['2', '4', '6', '8']:
                 params[PARAMS_INDEX_MAPPING[index]] = driver.find_element_by_xpath(
-                    '//*[@id="overlap-manager-root"]/div/div/div[1]/div/div[3]/div/div[{}]/div/span/span[1]/input'.format(
-                        index
+                    (
+                        '//*[@id="overlap-manager-root"]/div/div/div'
+                        '[1]/div/div[3]/div/div[{}]/div/span/span[1]/input'.format(
+                            index
+                        )
                     )
                 ).get_attribute('value')
 
@@ -207,7 +222,10 @@ class Crawler:
 
             # save the entire backtest results div as PNG screenshot
             backtest_results_element = driver.find_element_by_css_selector(
-                '#bottom-area > div.bottom-widgetbar-content.backtesting > div.backtesting-content-wrapper'
+                (
+                    '#bottom-area > div.bottom-widgetbar-content.backtesting '
+                    '> div.backtesting-content-wrapper'
+                )
             )
             save_screenshot_as_png(driver, backtest_results_element, params_filename)
             print('done saving chart as PNG')
