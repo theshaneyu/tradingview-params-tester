@@ -52,7 +52,7 @@ class Crawler:
             executable_path=self.chromedriver_path, options=options
         )
 
-    def _hover_fdc_nq(self) -> None:
+    def _hover_fdc_nq(self, sec_to_sleep: float = 0) -> None:
         fdc_nq_xpath = (
             '/html/body/div[2]/div[1]/div[2]/div[1]/div/table'
             '/tr[1]/td[2]/div/div[1]/div[2]/div[2]/div[3]/div[1]'
@@ -60,10 +60,11 @@ class Crawler:
         check_if_visible(self.driver, fdc_nq_xpath)
         fdc_nq_element = self.driver.find_element_by_xpath(fdc_nq_xpath)
         ActionChains(self.driver).move_to_element(fdc_nq_element).perform()
-        sleep(1)
+        if sec_to_sleep != 0:
+            sleep(sec_to_sleep)
         print('done hover')
 
-    def _click_gearwheel(self) -> None:
+    def _click_gearwheel(self, sec_to_sleep: float = 0) -> None:
         wait_and_click(
             self.driver,
             (
@@ -71,10 +72,11 @@ class Crawler:
                 '/div/div[1]/div[2]/div[2]/div[3]/div[1]/div[2]/div/div[2]'
             ),
         )
-        sleep(1)
+        if sec_to_sleep != 0:
+            sleep(sec_to_sleep)
         print('done clicking')
 
-    def _hover_params_input(self) -> None:
+    def _hover_params_input(self, sec_to_sleep: float = 0) -> None:
         period_adjustment_element = self.driver.find_element_by_xpath(
             (
                 '//*[@id="overlap-manager-root"]/'
@@ -82,9 +84,10 @@ class Crawler:
             )
         )
         ActionChains(self.driver).move_to_element(period_adjustment_element).perform()
-        sleep(0.5)
+        if sec_to_sleep != 0:
+            sleep(sec_to_sleep)
 
-    def _click_params_increase(self) -> None:
+    def _click_params_increase(self, sec_to_sleep: float = 0) -> None:
         wait_and_click(
             self.driver,
             (
@@ -92,7 +95,8 @@ class Crawler:
                 '/div/div[3]/div/div[2]/div/span/span[2]/div/button[1]'
             ),
         )
-        sleep(1.5)
+        if sec_to_sleep != 0:
+            sleep(sec_to_sleep)
 
     def _get_current_params(self) -> Dict[str, str]:
         params: Dict[str, str] = {}
@@ -107,11 +111,12 @@ class Crawler:
 
         return params
 
-    def _click_summary(self) -> None:
+    def _click_summary(self, sec_to_sleep: float = 0) -> None:
         wait_and_click(
             self.driver, '//*[@id="bottom-area"]/div[4]/div[1]/div[6]/ul/li[1]'
         )
-        sleep(0.5)
+        if sec_to_sleep != 0:
+            sleep(sec_to_sleep)
 
     def _save_profit_and_win_rate_to_csv(self, current_params: Dict[str, str]) -> None:
         profit = self.driver.find_element_by_xpath(
@@ -134,11 +139,12 @@ class Crawler:
         save_screenshot_as_png(self.driver, backtest_results_element, params_filename)
         print('done saving chart screenshot as PNG')
 
-    def _click_performance_brief(self) -> None:
+    def _click_performance_brief(self, sec_to_sleep: float = 0) -> None:
         wait_and_click(
             self.driver, '//*[@id="bottom-area"]/div[4]/div[1]/div[6]/ul/li[2]'
         )
-        sleep(0.5)
+        if sec_to_sleep != 0:
+            sleep(sec_to_sleep)
 
     def _save_performance_brief(self, current_params_filename: str) -> None:
         performance_summary_element = self.driver.find_element_by_xpath(
@@ -163,22 +169,22 @@ class Crawler:
             self.driver.get(URL)
 
             # hover over the FDC_NQ area in order to show the gearwheel
-            self._hover_fdc_nq()
+            self._hover_fdc_nq(sec_to_sleep=1)
 
             # click the gearwheel to enter params adjustment
-            self._click_gearwheel()
+            self._click_gearwheel(sec_to_sleep=1)
 
             # hover over the params' span to show the increase button
-            self._hover_params_input()
+            self._hover_params_input(sec_to_sleep=0.5)
 
             # click the increase button
-            self._click_params_increase()
+            self._click_params_increase(sec_to_sleep=1.5)
 
             # track the current params
             current_params = self._get_current_params()
 
             # click on `概要` bullton
-            self._click_summary()
+            self._click_summary(sec_to_sleep=0.5)
 
             # save profit and win rate data
             self._save_profit_and_win_rate_to_csv(current_params)
@@ -191,7 +197,7 @@ class Crawler:
                 self._screenshot_backtest_result(current_params_filename)
 
                 # click on `績效摘要` button
-                self._click_performance_brief()
+                self._click_performance_brief(sec_to_sleep=0.5)
 
                 # save `績效摘要` table as csv
                 self._save_performance_brief(current_params_filename)
