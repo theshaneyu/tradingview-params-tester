@@ -1,19 +1,13 @@
 import os
 import sys
-import base64
 import logging
 import traceback
 from time import sleep
 
-from typing import Dict, Literal
+from typing import Dict
 
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.remote.webdriver import WebDriver
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.support import expected_conditions as EC
 
 from constants import EXECUTION_TIME
 from utils import (
@@ -22,13 +16,13 @@ from utils import (
     save_cookie,
     save_performance_summary_to_csv,
     save_screenshot_as_png,
+    wait_and_click,
+    check_if_visible,
 )
 
 
 URL = 'https://tw.tradingview.com/chart/Iyu69JVU/'
-# URL = 'https://www.tradingview.com/cryptocurrency-signals/'
 
-# COOKIE_PATH = '/tmp/cookie'
 COOKIE_PATH = os.path.join('.tmp', 'cookie')
 
 PARAMS_INDEX_MAPPING = {
@@ -79,40 +73,6 @@ class Crawler:
                 'Period,Amplification,LongTakeProfit,ShortTakeProfit,Profit,WinRate\n'
             )
 
-    def _wait_and_click(
-        self, driver: WebDriver, path: str, by: Literal['xpath', 'css'] = 'xpath'
-    ) -> None:
-        WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable(
-                (By.XPATH, path) if by == 'xpath' else (By.CSS_SELECTOR, path)
-            )
-        ).click()
-
-    def _check_if_visible(self, driver: WebDriver, xpath: str) -> None:
-        print('開始等')
-        WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located((By.XPATH, xpath))
-        )
-        print('已出現')
-
-        return
-
-    def _save_chart_as_png(
-        self, driver: WebDriver, canvas_element: WebElement, filename: str
-    ) -> None:
-        """
-        docstring
-        """
-        # get the canvas as a PNG base64 string
-        canvas_base64 = driver.execute_script(
-            "return arguments[0].toDataURL('image/png').substring(21);", canvas_element
-        )
-        # decode
-        canvas_png = base64.b64decode(canvas_base64)
-        # save to a file
-        with open(filename, 'wb') as wf:
-            wf.write(canvas_png)
-
     def main(self) -> None:
         try:
             options = webdriver.ChromeOptions()
@@ -144,7 +104,7 @@ class Crawler:
                 '/html/body/div[2]/div[1]/div[2]/div[1]/div/table'
                 '/tr[1]/td[2]/div/div[1]/div[2]/div[2]/div[3]/div[1]'
             )
-            self._check_if_visible(driver, fdc_nq_xpath)
+            check_if_visible(driver, fdc_nq_xpath)
             fdc_nq_element = driver.find_element_by_xpath(fdc_nq_xpath)
             # print(type(fdc_nq_element))
             ActionChains(driver).move_to_element(fdc_nq_element).perform()
@@ -152,7 +112,7 @@ class Crawler:
             print('done hover')
 
             # click the gearwheel to enter params adjustment
-            self._wait_and_click(
+            wait_and_click(
                 driver,
                 (
                     '/html/body/div[2]/div[1]/div[2]/div[1]/div/table/tr[1]/td[2]'
@@ -173,7 +133,7 @@ class Crawler:
             sleep(0.5)
 
             # click the add button
-            self._wait_and_click(
+            wait_and_click(
                 driver,
                 (
                     '//*[@id="overlap-manager-root"]/div/div/div[1]'
@@ -196,7 +156,7 @@ class Crawler:
                 ).get_attribute('value')
 
             # click on `概要`
-            self._wait_and_click(
+            wait_and_click(
                 driver, '//*[@id="bottom-area"]/div[4]/div[1]/div[6]/ul/li[1]'
             )
             sleep(0.5)
@@ -231,7 +191,7 @@ class Crawler:
             print('done saving chart as PNG')
 
             # click on `績效摘要`
-            self._wait_and_click(
+            wait_and_click(
                 driver, '//*[@id="bottom-area"]/div[4]/div[1]/div[6]/ul/li[2]'
             )
             sleep(0.5)
