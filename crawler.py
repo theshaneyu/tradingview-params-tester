@@ -9,15 +9,16 @@ from typing import Dict
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 
-from constants import EXECUTION_TIME
 from utils import (
     append_params_csv,
+    get_chromedriver_path,
     load_cookie,
     save_cookie,
     save_performance_summary_to_csv,
     save_screenshot_as_png,
     wait_and_click,
     check_if_visible,
+    create_files_and_folders,
 )
 
 
@@ -35,43 +36,8 @@ PARAMS_INDEX_MAPPING = {
 
 class Crawler:
     def __init__(self) -> None:
-        self._create_files_and_folders()
-
-    def _create_files_and_folders(self) -> None:
-        # check chromedriver's existence
-        files = os.listdir('chromedriver')
-        if len(files) != 1:
-            raise Exception('Chromedriver not found')
-        self.chromedriver_path = os.path.join('chromedriver', files[0])
-
-        # check cookies folder
-        if not os.path.exists('.tmp'):
-            os.makedirs('.tmp')
-
-        # check results folder
-        if not os.path.exists('results'):
-            os.makedirs('results')
-        if not os.path.exists(os.path.join('results', EXECUTION_TIME)):
-            os.makedirs(os.path.join('results', EXECUTION_TIME))
-            os.makedirs(os.path.join('results', EXECUTION_TIME, 'params'))
-            os.makedirs(os.path.join('results', EXECUTION_TIME, 'charts'))
-            os.makedirs(os.path.join('results', EXECUTION_TIME, 'performance'))
-            os.makedirs(os.path.join('results', EXECUTION_TIME, 'transactions'))
-
-        # add header to params csv
-        with open(
-            os.path.join(
-                'results',
-                EXECUTION_TIME,
-                'params',
-                '{}.csv'.format(EXECUTION_TIME),
-            ),
-            'w',
-            encoding='utf8',
-        ) as wf:
-            wf.write(
-                'Period,Amplification,LongTakeProfit,ShortTakeProfit,Profit,WinRate\n'
-            )
+        self.chromedriver_path = get_chromedriver_path()
+        create_files_and_folders()
 
     def main(self) -> None:
         try:
