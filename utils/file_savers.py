@@ -74,7 +74,7 @@ def append_params_csv(params: Dict[str, str], profit: str, win_rate: str) -> Non
         af.write(
             '{},{},{},{},{},{}'.format(
                 params['period'],
-                params['amplifier'],
+                params['amplification'],
                 params['long_take_profit'],
                 params['short_take_profit'],
                 profit,

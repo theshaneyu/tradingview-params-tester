@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 import traceback
 from time import sleep
@@ -6,6 +7,8 @@ from time import sleep
 from typing import Dict
 
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.action_chains import ActionChains
 
 from utils import (
@@ -22,18 +25,26 @@ from utils import (
 )
 
 
+# constants
 URL = 'https://tw.tradingview.com/chart/Iyu69JVU/'
 
 COOKIE_PATH = os.path.join('.tmp', 'cookie')
 
-PARAMS_INDEX_MAPPING = {
+INDEX_PARAMS_MAPPING = {
     '2': 'period',
-    '4': 'amplifier',
+    '4': 'amplification',
     '6': 'long_take_profit',
     '8': 'short_take_profit',
 }
 
 SAVE_EXTRA = False
+
+BASE_PARAMS: Dict[str, float] = {
+    'period': 1,
+    'amplification': 0.1,
+    'long_take_profit': 50,
+    'short_take_profit': 50,
+}
 
 
 class Crawler:
@@ -53,10 +64,7 @@ class Crawler:
         )
 
     def _hover_fdc_nq(self, sec_to_sleep: float = 0) -> None:
-        fdc_nq_xpath = (
-            '/html/body/div[2]/div[1]/div[2]/div[1]/div/table'
-            '/tr[1]/td[2]/div/div[1]/div[2]/div[2]/div[3]/div[1]'
-        )
+        fdc_nq_xpath = '/html/body/div[2]/div[1]/div[2]/div[1]/div/table/tr[1]/td[2]/div/div[1]/div[2]/div[2]/div[2]/div[1]'
         check_if_visible(self.driver, fdc_nq_xpath)
         fdc_nq_element = self.driver.find_element_by_xpath(fdc_nq_xpath)
         ActionChains(self.driver).move_to_element(fdc_nq_element).perform()
@@ -68,13 +76,25 @@ class Crawler:
         wait_and_click(
             self.driver,
             (
-                '/html/body/div[2]/div[1]/div[2]/div[1]/div/table/tr[1]/td[2]'
-                '/div/div[1]/div[2]/div[2]/div[3]/div[1]/div[2]/div/div[2]'
+                '/html/body/div[2]/div[1]/div[2]/div[1]/div/table/tr[1]/td[2]/div/div[1]/div[2]/div[2]/div[2]/div[1]/div[2]/div/div[2]'
             ),
         )
         if sec_to_sleep != 0:
             sleep(sec_to_sleep)
         print('done clicking')
+
+    def _reset_params(self) -> None:
+        for index in ['2', '4', '6', '8']:
+            input_element: WebElement = self.driver.find_element_by_xpath(
+                (
+                    '//*[@id="overlap-manager-root"]/div/div/div[1]'
+                    '/div/div[3]/div/div[{}]/div/span/span[1]/input'.format(index)
+                )
+            )
+            input_element.send_keys(Keys.CONTROL + "a")
+            input_element.send_keys(Keys.DELETE)
+            input_element.send_keys(str(BASE_PARAMS[INDEX_PARAMS_MAPPING[index]]))
+            sleep(0.5)
 
     def _hover_params_input(self, sec_to_sleep: float = 0) -> None:
         period_adjustment_element = self.driver.find_element_by_xpath(
@@ -102,7 +122,7 @@ class Crawler:
         params: Dict[str, str] = {}
 
         for index in ['2', '4', '6', '8']:
-            params[PARAMS_INDEX_MAPPING[index]] = self.driver.find_element_by_xpath(
+            params[INDEX_PARAMS_MAPPING[index]] = self.driver.find_element_by_xpath(
                 (
                     '//*[@id="overlap-manager-root"]/div/div/div'
                     '[1]/div/div[3]/div/div[{}]/div/span/span[1]/input'.format(index)
@@ -173,6 +193,9 @@ class Crawler:
 
             # click the gearwheel to enter params adjustment
             self._click_gearwheel(sec_to_sleep=1)
+
+            # reset all params
+            self._reset_params()
 
             # hover over the params' span to show the increase button
             self._hover_params_input(sec_to_sleep=0.5)

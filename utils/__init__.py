@@ -16,7 +16,7 @@ def get_chromedriver_path() -> str:
 def get_params_filename(params: Dict[str, str]) -> str:
     return '{}_{}_{}_{}'.format(
         params['period'],
-        params['amplifier'],
+        params['amplification'],
         str(params['long_take_profit']).replace('.', '-'),
         str(params['short_take_profit']).replace('.', '-'),
     )
