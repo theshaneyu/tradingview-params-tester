@@ -33,6 +33,8 @@ PARAMS_INDEX_MAPPING = {
     '8': 'short_take_profit',
 }
 
+SAVE_EXTRA = False
+
 
 class Crawler:
     def __init__(self) -> None:
@@ -181,17 +183,18 @@ class Crawler:
             # save profit and win rate data
             self._save_profit_and_win_rate_to_csv(current_params)
 
-            # format a params filename string
-            current_params_filename = get_params_filename(current_params)
+            if SAVE_EXTRA:
+                # format a params filename string
+                current_params_filename = get_params_filename(current_params)
 
-            # screenshot the backtest result chart and data and save as PNG
-            self._screenshot_backtest_result(current_params_filename)
+                # screenshot the backtest result chart and data and save as PNG
+                self._screenshot_backtest_result(current_params_filename)
 
-            # click on `績效摘要` button
-            self._click_performance_brief()
+                # click on `績效摘要` button
+                self._click_performance_brief()
 
-            # save `績效摘要` table as csv
-            self._save_performance_brief(current_params_filename)
+                # save `績效摘要` table as csv
+                self._save_performance_brief(current_params_filename)
 
             _ = input('\nPress any key to exit 🎉')
             self.driver.quit()
