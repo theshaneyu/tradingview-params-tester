@@ -83,12 +83,12 @@ def append_params_csv(params: Dict[str, str], profit: str, win_rate: str) -> Non
         )
 
 
-def save_performance_summary_to_csv(
+def save_performance_brief_to_csv(
     table_element: WebElement, params_filename: str
 ) -> None:
     tbl = table_element.get_attribute('outerHTML')
     df = pd.read_html(tbl)[0]
-    print(df)
+    # print(df)
     df.to_csv(
         os.path.join(
             'results', EXECUTION_TIME, 'performance', '{}.csv'.format(params_filename)
