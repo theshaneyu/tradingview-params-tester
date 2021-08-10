@@ -3,8 +3,10 @@ from typing import Literal
 
 
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 
 
@@ -34,3 +36,9 @@ def check_if_visible(driver: WebDriver, xpath: str) -> None:
     print('Waiting to be visible ...')
     WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, xpath)))
     print('Visible')
+
+
+def fill_input(element_to_fill: WebElement, to_fill: str) -> None:
+    element_to_fill.send_keys(Keys.CONTROL + "a")
+    element_to_fill.send_keys(Keys.DELETE)
+    element_to_fill.send_keys(to_fill)

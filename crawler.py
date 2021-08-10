@@ -4,14 +4,23 @@ import logging
 import traceback
 from time import sleep
 
-from typing import Dict
+from typing import Dict, Literal
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.action_chains import ActionChains
 
+from constants import (
+    INCREASE_SIZE,
+    PARAMS_UPPER_LIMITS,
+    PARAMS_LOWER_LIMITS,
+    PARAMS_INDEX_MAPPING,
+    INDEX_PARAMS_MAPPING,
+    SEC_TO_SLEEP_PER_ITER,
+)
 from utils import (
+    fill_input,
     save_cookie,
     load_cookie,
     wait_and_click,
@@ -25,40 +34,16 @@ from utils import (
 )
 
 
+# types
+Params = Literal['period', 'amplification', 'long_take_profit', 'short_take_profit']
+CurrentParams = Dict[str, str]
+
 # constants
 URL = 'https://tw.tradingview.com/chart/Iyu69JVU/'
 
-COOKIE_PATH = os.path.join('.tmp', 'cookie')
-
-INDEX_PARAMS_MAPPING = {
-    '2': 'period',
-    '4': 'amplification',
-    '6': 'long_take_profit',
-    '8': 'short_take_profit',
-}
-
 SAVE_EXTRA = False
 
-PARAMS_LOWER_LIMITS: Dict[str, float] = {
-    'period': 4.0,
-    'amplification': 2.0,
-    'long_take_profit': 100.0,
-    'short_take_profit': 100.0,
-}
-
-PARAMS_UPPER_LIMITS = {
-    'period': 24.0,
-    'amplification': 6.0,
-    'long_take_profit': 750.0,
-    'short_take_profit': 750.0,
-}
-
-ITERATION_SIZE = {
-    'period': 1.0,
-    'amplification': 0.2,
-    'long_take_profit': 5.0,
-    'short_take_profit': 5.0,
-}
+COOKIE_PATH = os.path.join('.tmp', 'cookie')
 
 
 class Crawler:
@@ -101,7 +86,7 @@ class Crawler:
             sleep(sec_to_sleep)
         print('done clicking')
 
-    def _reset_params(self) -> None:
+    def _reset_params(self, sec_to_sleep: float = 0) -> None:
         for index in ['2', '4', '6', '8']:
             input_element: WebElement = self.driver.find_element_by_xpath(
                 (
@@ -111,10 +96,17 @@ class Crawler:
             )
             input_element.send_keys(Keys.CONTROL + "a")
             input_element.send_keys(Keys.DELETE)
-            input_element.send_keys(
-                str(PARAMS_LOWER_LIMITS[INDEX_PARAMS_MAPPING[index]])
+
+            to_fill = (
+                PARAMS_LOWER_LIMITS[INDEX_PARAMS_MAPPING[index]]
+                if INDEX_PARAMS_MAPPING[index] == 'amplification'
+                else int(PARAMS_LOWER_LIMITS[INDEX_PARAMS_MAPPING[index]])
             )
+            input_element.send_keys(str(to_fill))
             sleep(0.5)
+        if sec_to_sleep != 0:
+            sleep(sec_to_sleep)
+        print('Parameter reset')
 
     def _hover_params_input(self, sec_to_sleep: float = 0) -> None:
         period_adjustment_element = self.driver.find_element_by_xpath(
@@ -138,7 +130,7 @@ class Crawler:
         if sec_to_sleep != 0:
             sleep(sec_to_sleep)
 
-    def _get_current_params(self) -> Dict[str, str]:
+    def _get_current_params(self) -> CurrentParams:
         params: Dict[str, str] = {}
 
         for index in ['2', '4', '6', '8']:
@@ -158,7 +150,7 @@ class Crawler:
         if sec_to_sleep != 0:
             sleep(sec_to_sleep)
 
-    def _save_profit_and_win_rate_to_csv(self, current_params: Dict[str, str]) -> None:
+    def _save_profit_and_win_rate_to_csv(self, current_params: CurrentParams) -> None:
         profit = self.driver.find_element_by_xpath(
             '//*[@id="bottom-area"]/div[4]/div[3]/div/div/div[1]/div[1]/strong'
         ).text
@@ -194,6 +186,44 @@ class Crawler:
             performance_summary_element, current_params_filename
         )
 
+    def _increase_param(
+        self, param_to_increase: Params, current_params: CurrentParams
+    ) -> float:
+        """use browser to increase the specific param on the params adjustment panel
+           and return the increased param in float
+
+        Args:
+            param_to_increase (Params): the specific param to increase
+            current_params (CurrentParams): the params dict before increasement
+
+        Returns:
+            float: the increased specidifc param
+        """
+        element_to_fill: WebElement = self.driver.find_element_by_xpath(
+            (
+                '//*[@id="overlap-manager-root"]/div/div/div[1]'
+                '/div/div[3]/div/div[{}]/div/span/span[1]/input'.format(
+                    PARAMS_INDEX_MAPPING[param_to_increase]
+                )
+            )
+        )
+
+        increased_float = (
+            float(current_params[param_to_increase]) + INCREASE_SIZE[param_to_increase]
+        )
+
+        fill_input(
+            element_to_fill,
+            str(increased_float)
+            # only `amplification` needs to fill in `float`, otherwise `int`
+            if param_to_increase == 'amplification' else str(int(increased_float)),
+        )
+
+        # press ENTER after filling in the increased param
+        element_to_fill.send_keys(Keys.RETURN)
+
+        return increased_float
+
     def main(self) -> None:
         try:
             self.driver.get(URL)
@@ -215,16 +245,33 @@ class Crawler:
             self._click_gearwheel(sec_to_sleep=1)
 
             # reset all params
-            self._reset_params()
+            self._reset_params(sec_to_sleep=1)
 
             # track the current params
             # period, amplification, long_take_profit, short_take_profit
             current_params = self._get_current_params()
 
-            # while current_params['period'] < PARAMS_UPPER_LIMITS['period']:
-            #     while current_params['amplification'] < PARAMS_UPPER_LIMITS['amplification']:
-            #         while current_params['long_take_profit'] < PARAMS_UPPER_LIMITS['long_take_profit']:
-            #             while current_params['short_take_profit'] < PARAMS_UPPER_LIMITS['short_take_profit']:
+            while (
+                float(current_params['long_take_profit'])
+                < PARAMS_UPPER_LIMITS['long_take_profit']
+            ):
+                increased_long = self._increase_param(
+                    'long_take_profit', current_params
+                )
+                increased_short = self._increase_param(
+                    'short_take_profit', current_params
+                )
+                current_params['long_take_profit'] = str(increased_long)
+                current_params['short_take_profit'] = str(increased_short)
+                print(
+                    'current pamameters: {}  {}  {}  {}'.format(
+                        current_params['period'],
+                        current_params['amplification'],
+                        current_params['long_take_profit'],
+                        current_params['short_take_profit'],
+                    )
+                )
+                sleep(SEC_TO_SLEEP_PER_ITER)
 
             # track the current params
             current_params = self._get_current_params()
@@ -258,6 +305,9 @@ class Crawler:
             self.driver.quit()
 
         except SystemExit:
+            self.driver.quit()
+
+        except KeyboardInterrupt:
             self.driver.quit()
 
         except Exception:
