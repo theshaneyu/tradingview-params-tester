@@ -1,0 +1,22 @@
+{
+    "period": {
+        "lower_limit": 4.0,
+        "upper_limit": 24.0,
+        "increase_size": 1.0
+    },
+    "amplification": {
+        "lower_limit": 2.0,
+        "upper_limit": 6.0,
+        "increase_size": 0.2
+    },
+    "long_take_profit": {
+        "lower_limit": 100.0,
+        "upper_limit": 750.0,
+        "increase_size": 5.0
+    },
+    "short_take_profit": {
+        "lower_limit": 100.0,
+        "upper_limit": 750.0,
+        "increase_size": 5.0
+    }
+}
