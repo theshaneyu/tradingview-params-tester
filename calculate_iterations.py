@@ -5,7 +5,7 @@ from constants import (
     PARAMS_UPPER_LIMITS,
     INCREASE_SIZE,
     PARAMS,
-    SEC_TO_SLEEP_PER_ITER,
+    SEC_TO_SLEEP_PER_ITERATION,
 )
 
 
@@ -36,6 +36,6 @@ for param in PARAMS:
     )
 
 print('total iterations:', int(iterations))
-print('{} sec / per iteration'.format(int(SEC_TO_SLEEP_PER_ITER)))
+print('{} sec / per iteration'.format(int(SEC_TO_SLEEP_PER_ITERATION)))
 print('total time (hours):', total_hours)
 print('total time (days):', total_days)

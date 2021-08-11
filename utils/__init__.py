@@ -13,7 +13,7 @@ def get_chromedriver_path() -> str:
     return os.path.join('chromedriver', files[0])
 
 
-def get_params_filename(params: Dict[str, str]) -> str:
+def get_params_filename(params: CurrentParams) -> str:
     return '{}_{}_{}_{}'.format(
         params['period'],
         params['amplification'],

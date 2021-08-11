@@ -8,6 +8,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 
 from constants import EXECUTION_TIME
+from shared_types import CurrentParams
 
 
 def create_files_and_folders() -> None:
@@ -63,7 +64,7 @@ def save_screenshot_as_png(
     img.save(image_file_path)
 
 
-def append_params_csv(params: Dict[str, str], profit: str, win_rate: str) -> None:
+def append_params_csv(params: CurrentParams, profit: str, win_rate: str) -> None:
     with open(
         os.path.join(
             'results', EXECUTION_TIME, 'params', '{}.csv'.format(EXECUTION_TIME)

@@ -4,7 +4,7 @@ import logging
 import traceback
 from time import sleep
 
-from typing import Dict, Literal
+from typing import Literal
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -13,11 +13,13 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 from constants import (
     INCREASE_SIZE,
+    INDEXES,
+    PARAMS,
     PARAMS_UPPER_LIMITS,
     PARAMS_LOWER_LIMITS,
-    PARAMS_INDEX_MAPPING,
-    INDEX_PARAMS_MAPPING,
-    SEC_TO_SLEEP_PER_ITER,
+    PARAM_INDEX_MAPPER,
+    INDEX_PARAM_MAPPER,
+    SEC_TO_SLEEP_PER_ITERATION,
 )
 from utils import (
     fill_input,
@@ -32,11 +34,11 @@ from utils import (
     create_files_and_folders,
     save_performance_brief_to_csv,
 )
+from shared_types import CurrentParams, Params
 
 
 # types
-Params = Literal['period', 'amplification', 'long_take_profit', 'short_take_profit']
-CurrentParams = Dict[str, str]
+Param = Literal['period', 'amplification', 'long_take_profit', 'short_take_profit']
 
 # constants
 URL = 'https://tw.tradingview.com/chart/Iyu69JVU/'
@@ -86,21 +88,28 @@ class Crawler:
             sleep(sec_to_sleep)
         print('done clicking')
 
-    def _reset_params(self, sec_to_sleep: float = 0) -> None:
-        for index in ['2', '4', '6', '8']:
+    def _reset_params(
+        self,
+        params_to_reset: Params,
+        sec_to_sleep: float = 0,
+    ) -> None:
+        for param in params_to_reset:
             input_element: WebElement = self.driver.find_element_by_xpath(
                 (
                     '//*[@id="overlap-manager-root"]/div/div/div[1]'
-                    '/div/div[3]/div/div[{}]/div/span/span[1]/input'.format(index)
+                    '/div/div[3]/div/div[{}]/div/span/span[1]/input'.format(
+                        PARAM_INDEX_MAPPER[param]
+                    )
                 )
             )
             input_element.send_keys(Keys.CONTROL + "a")
             input_element.send_keys(Keys.DELETE)
 
+            # fill in the float is it's `amplification`, otherwise fill in the int
             to_fill = (
-                PARAMS_LOWER_LIMITS[INDEX_PARAMS_MAPPING[index]]
-                if INDEX_PARAMS_MAPPING[index] == 'amplification'
-                else int(PARAMS_LOWER_LIMITS[INDEX_PARAMS_MAPPING[index]])
+                PARAMS_LOWER_LIMITS[param]
+                if param == 'amplification'
+                else int(PARAMS_LOWER_LIMITS[param])
             )
             input_element.send_keys(str(to_fill))
             sleep(0.5)
@@ -131,10 +140,15 @@ class Crawler:
             sleep(sec_to_sleep)
 
     def _get_current_params(self) -> CurrentParams:
-        params: Dict[str, str] = {}
+        params: CurrentParams = {
+            'period': '',
+            'amplification': '',
+            'long_take_profit': '',
+            'short_take_profit': '',
+        }
 
-        for index in ['2', '4', '6', '8']:
-            params[INDEX_PARAMS_MAPPING[index]] = self.driver.find_element_by_xpath(
+        for index in INDEXES:
+            params[INDEX_PARAM_MAPPER[index]] = self.driver.find_element_by_xpath(
                 (
                     '//*[@id="overlap-manager-root"]/div/div/div'
                     '[1]/div/div[3]/div/div[{}]/div/span/span[1]/input'.format(index)
@@ -151,11 +165,11 @@ class Crawler:
             sleep(sec_to_sleep)
 
     def _save_profit_and_win_rate_to_csv(self, current_params: CurrentParams) -> None:
-        profit = self.driver.find_element_by_xpath(
+        profit: str = self.driver.find_element_by_xpath(
             '//*[@id="bottom-area"]/div[4]/div[3]/div/div/div[1]/div[1]/strong'
         ).text
         profit = profit.replace('$ ', '')
-        win_rate = self.driver.find_element_by_xpath(
+        win_rate: str = self.driver.find_element_by_xpath(
             '//*[@id="bottom-area"]/div[4]/div[3]/div/div/div[1]/div[3]/strong'
         ).text
         win_rate = str(float(win_rate.replace(' %', '')) / 100.0)
@@ -187,13 +201,16 @@ class Crawler:
         )
 
     def _increase_param(
-        self, param_to_increase: Params, current_params: CurrentParams
+        self,
+        param_to_increase: Param,
+        current_params: CurrentParams,
+        press_enter: bool = True,
     ) -> float:
         """use browser to increase the specific param on the params adjustment panel
            and return the increased param in float
 
         Args:
-            param_to_increase (Params): the specific param to increase
+            param_to_increase (Param): the specific param to increase
             current_params (CurrentParams): the params dict before increasement
 
         Returns:
@@ -203,7 +220,7 @@ class Crawler:
             (
                 '//*[@id="overlap-manager-root"]/div/div/div[1]'
                 '/div/div[3]/div/div[{}]/div/span/span[1]/input'.format(
-                    PARAMS_INDEX_MAPPING[param_to_increase]
+                    PARAM_INDEX_MAPPER[param_to_increase]
                 )
             )
         )
@@ -220,7 +237,8 @@ class Crawler:
         )
 
         # press ENTER after filling in the increased param
-        element_to_fill.send_keys(Keys.RETURN)
+        if press_enter:
+            element_to_fill.send_keys(Keys.RETURN)
 
         return increased_float
 
@@ -245,33 +263,51 @@ class Crawler:
             self._click_gearwheel(sec_to_sleep=1)
 
             # reset all params
-            self._reset_params(sec_to_sleep=1)
+            self._reset_params(params_to_reset=PARAMS, sec_to_sleep=1)
 
             # track the current params
             # period, amplification, long_take_profit, short_take_profit
             current_params = self._get_current_params()
 
-            while (
-                float(current_params['long_take_profit'])
-                < PARAMS_UPPER_LIMITS['long_take_profit']
-            ):
-                increased_long = self._increase_param(
-                    'long_take_profit', current_params
-                )
-                increased_short = self._increase_param(
-                    'short_take_profit', current_params
-                )
-                current_params['long_take_profit'] = str(increased_long)
-                current_params['short_take_profit'] = str(increased_short)
-                print(
-                    'current pamameters: {}  {}  {}  {}'.format(
-                        current_params['period'],
-                        current_params['amplification'],
-                        current_params['long_take_profit'],
-                        current_params['short_take_profit'],
+            while float(current_params['period']) < PARAMS_UPPER_LIMITS['period']:
+                # the loop of period
+                increased_period = self._increase_param('period', current_params)
+                current_params['period'] = str(increased_period)
+                sleep(SEC_TO_SLEEP_PER_ITERATION)
+
+                while (
+                    float(current_params['amplification'])
+                    < PARAMS_UPPER_LIMITS['amplification']
+                ):
+                    # the loop of amplification
+                    increased_amplification = self._increase_param(
+                        'amplification', current_params
                     )
-                )
-                sleep(SEC_TO_SLEEP_PER_ITER)
+                    current_params['amplification'] = str(increased_amplification)
+                    sleep(SEC_TO_SLEEP_PER_ITERATION)
+
+                    while (
+                        float(current_params['long_take_profit'])
+                        < PARAMS_UPPER_LIMITS['long_take_profit']
+                    ):
+                        # the loop of long/short take profit
+                        increased_long = self._increase_param(
+                            'long_take_profit', current_params, press_enter=False
+                        )
+                        increased_short = self._increase_param(
+                            'short_take_profit', current_params
+                        )
+                        current_params['long_take_profit'] = str(increased_long)
+                        current_params['short_take_profit'] = str(increased_short)
+                        print(
+                            'current pamameters: {}  {}  {}  {}'.format(
+                                current_params['period'],
+                                current_params['amplification'],
+                                current_params['long_take_profit'],
+                                current_params['short_take_profit'],
+                            )
+                        )
+                        sleep(SEC_TO_SLEEP_PER_ITERATION)
 
             # track the current params
             current_params = self._get_current_params()
