@@ -181,7 +181,7 @@ class Crawler:
         win_rate: str = self.driver.find_element_by_xpath(
             '//*[@id="bottom-area"]/div[4]/div[3]/div/div/div[1]/div[3]/strong'
         ).text
-        win_rate = str(float(win_rate.replace(' %', '')) / 100.0)
+        win_rate = '{:.4f}'.format(float(win_rate.replace(' %', '')) / 100.0)
         append_params_csv(current_params, profit, win_rate)
         return profit, win_rate
 

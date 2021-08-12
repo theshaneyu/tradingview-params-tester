@@ -32,15 +32,15 @@ def print_current_info(
 ) -> None:
     print(
         (
-            'current pamameters: {:.2f} {:.2f} {:.2f} {:.2f} | profit: {:.2f} |'
-            ' win_rate: {:.2f} | iterations ({}/{}) | estimatedly takes {} hours |'
+            'current pamameters: {} {:.2f} {} {} | profit: {} |'
+            ' win_rate: {} | iterations ({}/{}) | estimatedly takes {:.2f} hours |'
             ' start time {}'.format(
-                float(current_params['period']),
+                int(current_params['period']),
                 float(current_params['amplification']),
-                float(current_params['long_take_profit']),
-                float(current_params['short_take_profit']),
-                float(profit),
-                float(win_rate),
+                int(current_params['long_take_profit']),
+                int(current_params['short_take_profit']),
+                profit,
+                win_rate,
                 current_iter,
                 total_iter,
                 total_hours,
