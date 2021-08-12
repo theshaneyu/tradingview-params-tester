@@ -327,6 +327,25 @@ class Crawler:
                     )
                     sleep(SEC_TO_SLEEP_PER_ITERATION)
 
+                # after finishing the loop of amplification
+                # 1. first reset the amplification and long/short take profit
+                self._reset_params(['long_take_profit', 'short_take_profit'], 1)
+                self._reset_params(['amplification'], 1)
+                # 2. increase the `period` and press ENTER
+                self._increase_param('period', current_params)
+                # 3. set the current params from the browser
+                current_params = self._get_current_params_from_browser()
+                # 4. save profit and win_rate from the browser
+                csv_line = self._save_profit_and_win_rate_to_csv(current_params)
+                self.current_iteration += 1
+                print_current_info(
+                    csv_line,
+                    self.current_iteration,
+                    self.estimated_total_iterations,
+                    self.estimated_time,
+                )
+                sleep(SEC_TO_SLEEP_PER_ITERATION)
+
             # # track the current params
             # current_params = self._get_current_params()
 
