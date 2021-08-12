@@ -171,9 +171,7 @@ class Crawler:
         if sec_to_sleep != 0:
             sleep(sec_to_sleep)
 
-    def _save_profit_and_win_rate_to_csv(
-        self, current_params: CurrentParams
-    ) -> Tuple[str, str]:
+    def _save_profit_and_win_rate_to_csv(self, current_params: CurrentParams) -> str:
         profit: str = self.driver.find_element_by_xpath(
             '//*[@id="bottom-area"]/div[4]/div[3]/div/div/div[1]/div[1]/strong'
         ).text
@@ -182,8 +180,8 @@ class Crawler:
             '//*[@id="bottom-area"]/div[4]/div[3]/div/div/div[1]/div[3]/strong'
         ).text
         win_rate = '{:.4f}'.format(float(win_rate.replace(' %', '')) / 100.0)
-        append_params_csv(current_params, profit, win_rate)
-        return profit, win_rate
+
+        return append_params_csv(current_params, profit, win_rate)
 
     def _screenshot_backtest_result(self, params_filename: str) -> None:
         backtest_results_element = self.driver.find_element_by_css_selector(
@@ -301,14 +299,10 @@ class Crawler:
                         # set the current params from the browser
                         current_params = self._get_current_params_from_browser()
                         # save profit and win rate data from the browser
-                        profit, win_rate = self._save_profit_and_win_rate_to_csv(
-                            current_params
-                        )
+                        csv_line = self._save_profit_and_win_rate_to_csv(current_params)
                         self.current_iteration += 1
                         print_current_info(
-                            current_params,
-                            profit,
-                            win_rate,
+                            csv_line,
                             self.current_iteration,
                             self.estimated_total_iterations,
                             self.estimated_time,
@@ -323,14 +317,10 @@ class Crawler:
                     # 3. set the current params from the browser
                     current_params = self._get_current_params_from_browser()
                     # 4. save profit and win_rate from the browser
-                    profit, win_rate = self._save_profit_and_win_rate_to_csv(
-                        current_params
-                    )
+                    csv_line = self._save_profit_and_win_rate_to_csv(current_params)
                     self.current_iteration += 1
                     print_current_info(
-                        current_params,
-                        profit,
-                        win_rate,
+                        csv_line,
                         self.current_iteration,
                         self.estimated_total_iterations,
                         self.estimated_time,

@@ -64,7 +64,15 @@ def save_screenshot_as_png(
     img.save(image_file_path)
 
 
-def append_params_csv(params: CurrentParams, profit: str, win_rate: str) -> None:
+def append_params_csv(params: CurrentParams, profit: str, win_rate: str) -> str:
+    csv_line = '{},{:.2f},{},{},{},{}'.format(
+        int(params['period']),
+        float(params['amplification']),
+        int(params['long_take_profit']),
+        int(params['short_take_profit']),
+        profit,
+        win_rate,
+    )
     with open(
         os.path.join(
             'results', EXECUTION_TIME, 'params', '{}.csv'.format(EXECUTION_TIME)
@@ -72,16 +80,9 @@ def append_params_csv(params: CurrentParams, profit: str, win_rate: str) -> None
         'a',
         encoding='utf8',
     ) as af:
-        af.write(
-            '{},{:.2f},{},{},{},{}\n'.format(
-                int(params['period']),
-                float(params['amplification']),
-                int(params['long_take_profit']),
-                int(params['short_take_profit']),
-                profit,
-                win_rate,
-            )
-        )
+        af.write(csv_line + '\n')
+
+    return csv_line
 
 
 def save_performance_brief_to_csv(

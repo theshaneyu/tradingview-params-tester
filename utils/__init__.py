@@ -23,22 +23,34 @@ def get_params_filename(params: CurrentParams) -> str:
 
 
 def print_current_info(
-    current_params: CurrentParams,
-    profit: str,
-    win_rate: str,
+    csv_line: str,
     current_iter: int,
     total_iter: int,
     total_hours: float,
 ) -> None:
+    csv_item_list = csv_line.split(',')
+
+    if len(csv_item_list) != 6:
+        raise Exception('too many items in a csv line')
+
+    (
+        period,
+        amplification,
+        long_take_profit,
+        short_take_profit,
+        profit,
+        win_rate,
+    ) = csv_item_list
+
     print(
         (
-            'current pamameters: {} {:.2f} {} {} | profit: {} |'
+            'current pamameters: {} {} {} {} | profit: {} |'
             ' win_rate: {} | iterations ({}/{}) | estimatedly takes {:.2f} hours |'
             ' start time {}'.format(
-                int(current_params['period']),
-                float(current_params['amplification']),
-                int(current_params['long_take_profit']),
-                int(current_params['short_take_profit']),
+                period,
+                amplification,
+                long_take_profit,
+                short_take_profit,
                 profit,
                 win_rate,
                 current_iter,
