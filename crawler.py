@@ -255,8 +255,11 @@ class Crawler:
             # load/save cookies
             if not os.path.exists(COOKIE_PATH):
                 # no cookies are found yet
-                _ = input()
+                print('use the browser to log in, then exit and rerun the program')
+                _ = input('press any key to exit')
                 save_cookie(self.driver, COOKIE_PATH)
+                self.driver.quit()
+                sys.exit()
             else:
                 load_cookie(self.driver, COOKIE_PATH)
 
