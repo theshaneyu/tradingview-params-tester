@@ -26,6 +26,10 @@ def create_files_and_folders() -> None:
         os.makedirs(os.path.join('results', EXECUTION_TIME, 'performance'))
         os.makedirs(os.path.join('results', EXECUTION_TIME, 'transactions'))
 
+    # check logs folder
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
+
     # add header to params csv
     with open(
         os.path.join(
@@ -90,7 +94,7 @@ def save_performance_brief_to_csv(
 ) -> None:
     tbl = table_element.get_attribute('outerHTML')
     df = pd.read_html(tbl)[0]
-    # print(df)
+    # logging.info(df)
     df.to_csv(
         os.path.join(
             'results', EXECUTION_TIME, 'performance', '{}.csv'.format(params_filename)

@@ -3,6 +3,7 @@ chromedriver
 .tmp
 results
 config.json
+logs
 
 # conventional config starts from below
 

@@ -1,4 +1,5 @@
 import os
+import logging
 
 from .browser_helpers import *
 from .file_savers import *
@@ -42,7 +43,7 @@ def print_current_info(
         win_rate,
     ) = csv_item_list
 
-    print(
+    logging.info(
         (
             'current pamameters: {} {} {} {} | profit: {} |'
             ' win_rate: {} | iterations ({}/{}) | estimatedly takes {:.2f} hours |'

@@ -1,10 +1,15 @@
+import os
 import json
 from datetime import datetime
 
 from typing import Literal, List, TypedDict
 
+from dotenv import load_dotenv
+
 from shared_types import Params
 
+
+load_dotenv()
 
 # types
 Indexes = List[Literal['2', '4', '6', '8']]
@@ -44,6 +49,10 @@ ParamIndexMapper = TypedDict(
 SEC_TO_SLEEP_PER_ITERATION = 1.5
 
 EXECUTION_TIME = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+
+LOG_PATH = os.path.join('logs', '{}.log'.format(EXECUTION_TIME))
+
+__PROD__ = os.environ.get('PYTHON_ENV') == 'prod'
 
 PARAMS: Params = ['period', 'amplification', 'long_take_profit', 'short_take_profit']
 

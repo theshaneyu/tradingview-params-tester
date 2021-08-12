@@ -1,4 +1,5 @@
 import pickle
+import logging
 from typing import Literal
 
 
@@ -33,9 +34,9 @@ def wait_and_click(
 
 
 def check_if_visible(driver: WebDriver, xpath: str) -> None:
-    print('Waiting to be visible ...')
+    logging.info('Waiting to be visible ...')
     WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, xpath)))
-    print('Visible')
+    logging.info('Visible')
 
 
 def fill_input(element_to_fill: WebElement, to_fill: str) -> None:
