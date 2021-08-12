@@ -22,16 +22,29 @@ def get_params_filename(params: CurrentParams) -> str:
     )
 
 
-def print_current_params(
-    current_params: CurrentParams, profit: str, win_rate: str
+def print_current_info(
+    current_params: CurrentParams,
+    profit: str,
+    win_rate: str,
+    current_iter: int,
+    total_iter: int,
+    total_hours: float,
 ) -> None:
     print(
-        'current pamameters: {}  {}  {}  {} | profit: {} | win_rate: {}'.format(
-            current_params['period'],
-            current_params['amplification'],
-            current_params['long_take_profit'],
-            current_params['short_take_profit'],
-            profit,
-            win_rate,
+        (
+            'current pamameters: {:.2f} {:.2f} {:.2f} {:.2f} | profit: {:.2f} |'
+            ' win_rate: {:.2f} | iterations ({}/{}) | estimatedly takes {} hours |'
+            ' start time {}'.format(
+                float(current_params['period']),
+                float(current_params['amplification']),
+                float(current_params['long_take_profit']),
+                float(current_params['short_take_profit']),
+                float(profit),
+                float(win_rate),
+                current_iter,
+                total_iter,
+                total_hours,
+                EXECUTION_TIME,
+            )
         )
     )

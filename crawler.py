@@ -29,13 +29,14 @@ from utils import (
     check_if_visible,
     append_params_csv,
     get_params_filename,
-    print_current_params,
+    print_current_info,
     get_chromedriver_path,
     save_screenshot_as_png,
     create_files_and_folders,
     save_performance_brief_to_csv,
 )
 from shared_types import CurrentParams, Params
+from calculate_iterations import get_estamated_interations_and_time
 
 
 # types
@@ -54,12 +55,17 @@ class Crawler:
         create_files_and_folders()
         self.chromedriver_path = get_chromedriver_path()
         self._set_driver()
+        (
+            self.estimated_total_iterations,
+            self.estimated_time,
+        ) = get_estamated_interations_and_time()
+        self.current_iteration = 0
 
     def _set_driver(self) -> None:
         options = webdriver.ChromeOptions()
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         # options.add_argument('headless')
-        options.add_argument('window-size=1010,1390')
+        options.add_argument('window-size=700,1390')
 
         self.driver = webdriver.Chrome(
             executable_path=self.chromedriver_path, options=options
@@ -286,31 +292,49 @@ class Crawler:
                         < PARAMS_UPPER_LIMITS['long_take_profit']
                     ):
                         # the loop of long/short take profit
+                        # increase the `long_take_profit` but NOT to hit ENTER
                         self._increase_param(
                             'long_take_profit', current_params, press_enter=False
                         )
+                        # increase the `short_take_profit` and hit ENTER
                         self._increase_param('short_take_profit', current_params)
+                        # set the current params from the browser
                         current_params = self._get_current_params_from_browser()
-
-                        # save profit and win rate data
+                        # save profit and win rate data from the browser
                         profit, win_rate = self._save_profit_and_win_rate_to_csv(
                             current_params
                         )
-                        print_current_params(current_params, profit, win_rate)
+                        self.current_iteration += 1
+                        print_current_info(
+                            current_params,
+                            profit,
+                            win_rate,
+                            self.current_iteration,
+                            self.estimated_total_iterations,
+                            self.estimated_time,
+                        )
                         sleep(SEC_TO_SLEEP_PER_ITERATION)
 
-                    # after the loop of long/short take profit
+                    # after finishing the loop of long/short take profit
                     # 1. first reset the long/short take profit
                     self._reset_params(['long_take_profit', 'short_take_profit'], 1)
                     # 2. increase the `amplification` and press ENTER
                     self._increase_param('amplification', current_params)
-                    # 3. set the current params
+                    # 3. set the current params from the browser
                     current_params = self._get_current_params_from_browser()
-                    # 4. save data
+                    # 4. save profit and win_rate from the browser
                     profit, win_rate = self._save_profit_and_win_rate_to_csv(
                         current_params
                     )
-                    print_current_params(current_params, profit, win_rate)
+                    self.current_iteration += 1
+                    print_current_info(
+                        current_params,
+                        profit,
+                        win_rate,
+                        self.current_iteration,
+                        self.estimated_total_iterations,
+                        self.estimated_time,
+                    )
                     sleep(SEC_TO_SLEEP_PER_ITERATION)
 
             # # track the current params
