@@ -20,3 +20,18 @@ def get_params_filename(params: CurrentParams) -> str:
         str(params['long_take_profit']).replace('.', '-'),
         str(params['short_take_profit']).replace('.', '-'),
     )
+
+
+def print_current_params(
+    current_params: CurrentParams, profit: str, win_rate: str
+) -> None:
+    print(
+        'current pamameters: {}  {}  {}  {} | profit: {} | win_rate: {}'.format(
+            current_params['period'],
+            current_params['amplification'],
+            current_params['long_take_profit'],
+            current_params['short_take_profit'],
+            profit,
+            win_rate,
+        )
+    )

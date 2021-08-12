@@ -41,7 +41,7 @@ ParamIndexMapper = TypedDict(
 
 
 # seconds to sleep after each iteration
-SEC_TO_SLEEP_PER_ITERATION = 2.0
+SEC_TO_SLEEP_PER_ITERATION = 1.5
 
 EXECUTION_TIME = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 

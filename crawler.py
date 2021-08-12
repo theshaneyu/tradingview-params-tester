@@ -4,7 +4,7 @@ import logging
 import traceback
 from time import sleep
 
-from typing import Literal
+from typing import Literal, Tuple
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -29,6 +29,7 @@ from utils import (
     check_if_visible,
     append_params_csv,
     get_params_filename,
+    print_current_params,
     get_chromedriver_path,
     save_screenshot_as_png,
     create_files_and_folders,
@@ -115,7 +116,7 @@ class Crawler:
             sleep(0.5)
         if sec_to_sleep != 0:
             sleep(sec_to_sleep)
-        print('Parameter reset')
+        print('Parameter reset {}'.format(params_to_reset))
 
     def _hover_params_input(self, sec_to_sleep: float = 0) -> None:
         period_adjustment_element = self.driver.find_element_by_xpath(
@@ -139,7 +140,7 @@ class Crawler:
         if sec_to_sleep != 0:
             sleep(sec_to_sleep)
 
-    def _get_current_params(self) -> CurrentParams:
+    def _get_current_params_from_browser(self) -> CurrentParams:
         params: CurrentParams = {
             'period': '',
             'amplification': '',
@@ -164,7 +165,9 @@ class Crawler:
         if sec_to_sleep != 0:
             sleep(sec_to_sleep)
 
-    def _save_profit_and_win_rate_to_csv(self, current_params: CurrentParams) -> None:
+    def _save_profit_and_win_rate_to_csv(
+        self, current_params: CurrentParams
+    ) -> Tuple[str, str]:
         profit: str = self.driver.find_element_by_xpath(
             '//*[@id="bottom-area"]/div[4]/div[3]/div/div/div[1]/div[1]/strong'
         ).text
@@ -174,6 +177,7 @@ class Crawler:
         ).text
         win_rate = str(float(win_rate.replace(' %', '')) / 100.0)
         append_params_csv(current_params, profit, win_rate)
+        return profit, win_rate
 
     def _screenshot_backtest_result(self, params_filename: str) -> None:
         backtest_results_element = self.driver.find_element_by_css_selector(
@@ -205,7 +209,7 @@ class Crawler:
         param_to_increase: Param,
         current_params: CurrentParams,
         press_enter: bool = True,
-    ) -> float:
+    ) -> None:
         """use browser to increase the specific param on the params adjustment panel
            and return the increased param in float
 
@@ -240,8 +244,6 @@ class Crawler:
         if press_enter:
             element_to_fill.send_keys(Keys.RETURN)
 
-        return increased_float
-
     def main(self) -> None:
         try:
             self.driver.get(URL)
@@ -267,62 +269,61 @@ class Crawler:
 
             # track the current params
             # period, amplification, long_take_profit, short_take_profit
-            current_params = self._get_current_params()
+            current_params = self._get_current_params_from_browser()
 
             while float(current_params['period']) < PARAMS_UPPER_LIMITS['period']:
-                # the loop of period
-                increased_period = self._increase_param('period', current_params)
-                current_params['period'] = str(increased_period)
-                sleep(SEC_TO_SLEEP_PER_ITERATION)
+                # # the loop of period
+                # increased_period = self._increase_param('period', current_params)
+                # current_params['period'] = str(increased_period)
+                # sleep(SEC_TO_SLEEP_PER_ITERATION)
 
                 while (
                     float(current_params['amplification'])
                     < PARAMS_UPPER_LIMITS['amplification']
                 ):
-                    # the loop of amplification
-                    increased_amplification = self._increase_param(
-                        'amplification', current_params
-                    )
-                    current_params['amplification'] = str(increased_amplification)
-                    sleep(SEC_TO_SLEEP_PER_ITERATION)
-
                     while (
                         float(current_params['long_take_profit'])
                         < PARAMS_UPPER_LIMITS['long_take_profit']
                     ):
                         # the loop of long/short take profit
-                        increased_long = self._increase_param(
+                        self._increase_param(
                             'long_take_profit', current_params, press_enter=False
                         )
-                        increased_short = self._increase_param(
-                            'short_take_profit', current_params
+                        self._increase_param('short_take_profit', current_params)
+                        current_params = self._get_current_params_from_browser()
+
+                        # save profit and win rate data
+                        profit, win_rate = self._save_profit_and_win_rate_to_csv(
+                            current_params
                         )
-                        current_params['long_take_profit'] = str(increased_long)
-                        current_params['short_take_profit'] = str(increased_short)
-                        print(
-                            'current pamameters: {}  {}  {}  {}'.format(
-                                current_params['period'],
-                                current_params['amplification'],
-                                current_params['long_take_profit'],
-                                current_params['short_take_profit'],
-                            )
-                        )
+                        print_current_params(current_params, profit, win_rate)
                         sleep(SEC_TO_SLEEP_PER_ITERATION)
 
-            # track the current params
-            current_params = self._get_current_params()
+                    # after the loop of long/short take profit
+                    # 1. first reset the long/short take profit
+                    self._reset_params(['long_take_profit', 'short_take_profit'], 1)
+                    # 2. increase the `amplification` and press ENTER
+                    self._increase_param('amplification', current_params)
+                    # 3. set the current params
+                    current_params = self._get_current_params_from_browser()
+                    # 4. save data
+                    profit, win_rate = self._save_profit_and_win_rate_to_csv(
+                        current_params
+                    )
+                    print_current_params(current_params, profit, win_rate)
+                    sleep(SEC_TO_SLEEP_PER_ITERATION)
 
-            # hover over the params' span to show the increase button
-            self._hover_params_input(sec_to_sleep=0.5)
+            # # track the current params
+            # current_params = self._get_current_params()
 
-            # click the increase button
-            self._click_params_increase(sec_to_sleep=1.5)
+            # # hover over the params' span to show the increase button
+            # self._hover_params_input(sec_to_sleep=0.5)
 
-            # click on `概要` bullton
-            self._click_summary(sec_to_sleep=0.5)
+            # # click the increase button
+            # self._click_params_increase(sec_to_sleep=1.5)
 
-            # save profit and win rate data
-            self._save_profit_and_win_rate_to_csv(current_params)
+            # # click on `概要` bullton
+            # self._click_summary(sec_to_sleep=0.5)
 
             if SAVE_EXTRA:
                 # format a params filename string

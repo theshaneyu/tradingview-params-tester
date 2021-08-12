@@ -73,7 +73,7 @@ def append_params_csv(params: CurrentParams, profit: str, win_rate: str) -> None
         encoding='utf8',
     ) as af:
         af.write(
-            '{},{},{},{},{},{}'.format(
+            '{},{},{},{},{},{}\n'.format(
                 params['period'],
                 params['amplification'],
                 params['long_take_profit'],
