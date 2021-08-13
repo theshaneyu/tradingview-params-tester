@@ -3,6 +3,7 @@ import sys
 import traceback
 from time import sleep
 from typing import Literal
+from datetime import datetime
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -10,6 +11,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.action_chains import ActionChains
 
 from constants import (
+    EXECUTION_TIME,
     INCREASE_SIZE,
     INDEXES,
     PARAMS,
@@ -386,6 +388,10 @@ class Crawler:
             self.driver.quit()
 
         except Exception:
+            if __PROD__:
+                self.driver.save_screenshot(
+                    filename=os.path.join('logs', '{}.png'.format(EXECUTION_TIME))
+                )
             logger.exception(traceback.format_exc())
             self.driver.quit()
 
