@@ -3,7 +3,6 @@ import sys
 import traceback
 from time import sleep
 from typing import Literal
-from datetime import datetime
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -54,7 +53,6 @@ COOKIE_PATH = os.path.join('.tmp', 'cookie')
 
 class Crawler:
     def __init__(self) -> None:
-        create_files_and_folders()
         self.chromedriver_path = get_chromedriver_path()
         self._set_driver()
         (

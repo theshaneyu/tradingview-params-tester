@@ -1,9 +1,11 @@
 import os
-from utils.logger import setup_logger
 
-from .browser_helpers import *
 from .file_savers import *
+from .browser_helpers import *
+from .logger import *
 
+
+create_files_and_folders()
 
 logger = setup_logger('file_and_stdout_logger', True)
 logger_only_stdout = setup_logger('stdout_logger', False)
