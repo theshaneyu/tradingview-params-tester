@@ -1,7 +1,5 @@
 import pickle
-import logging
 from typing import Literal
-
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -34,9 +32,9 @@ def wait_and_click(
 
 
 def check_if_visible(driver: WebDriver, xpath: str) -> None:
-    logging.info('Waiting to be visible ...')
+    print('Waiting to be visible ...')
     WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, xpath)))
-    logging.info('Visible')
+    print('Visible')
 
 
 def fill_input(element_to_fill: WebElement, to_fill: str) -> None:

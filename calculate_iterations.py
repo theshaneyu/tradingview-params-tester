@@ -1,6 +1,4 @@
 import sys
-import logging
-
 from typing import List, Literal, Tuple
 
 from constants import (
@@ -45,7 +43,7 @@ def get_estamated_interations_and_time(print_info: bool = False) -> Tuple[int, f
 
     if print_info:
         for param in REMOVED_PARAMS:
-            logging.info(
+            print(
                 '{} ({} -> {} | move {} per iter): {} iterations'.format(
                     param,
                     float(PARAMS_LOWER_LIMITS[param])
@@ -63,10 +61,10 @@ def get_estamated_interations_and_time(print_info: bool = False) -> Tuple[int, f
                 )
             )
 
-        logging.info('total iterations: {}'.format(int(iterations)))
-        logging.info('{} sec / per iteration'.format(float(SEC_TO_SLEEP_PER_ITERATION)))
-        logging.info('total time (hours): {}'.format(total_hours))
-        logging.info('total time (days): {}'.format(total_days))
+        print('total iterations: {}'.format(int(iterations)))
+        print('{} sec / per iteration'.format(float(SEC_TO_SLEEP_PER_ITERATION)))
+        print('total time (hours): {}'.format(total_hours))
+        print('total time (days): {}'.format(total_days))
 
     return int(iterations), total_hours
 

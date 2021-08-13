@@ -2,7 +2,6 @@ import os
 import sys
 import traceback
 from time import sleep
-
 from typing import Literal
 
 from selenium import webdriver
@@ -19,10 +18,10 @@ from constants import (
     PARAM_INDEX_MAPPER,
     INDEX_PARAM_MAPPER,
     SEC_TO_SLEEP_PER_ITERATION,
-    LOG_PATH,
     __PROD__,
 )
 from utils import (
+    logger,
     fill_input,
     save_cookie,
     load_cookie,
@@ -82,7 +81,7 @@ class Crawler:
         ActionChains(self.driver).move_to_element(fdc_nq_element).perform()
         if sec_to_sleep != 0:
             sleep(sec_to_sleep)
-        logging.info('done hover')
+        logger.info('done hover')
 
     def _click_gearwheel(self, sec_to_sleep: float = 0) -> None:
         wait_and_click(
@@ -94,7 +93,7 @@ class Crawler:
         )
         if sec_to_sleep != 0:
             sleep(sec_to_sleep)
-        logging.info('done clicking')
+        logger.info('done clicking')
 
     def _reset_params(
         self,
@@ -123,7 +122,7 @@ class Crawler:
             sleep(0.5)
         if sec_to_sleep != 0:
             sleep(sec_to_sleep)
-        logging.info('Parameter reset {}'.format(params_to_reset))
+        logger.info('Parameter reset {}'.format(params_to_reset))
 
     def _hover_params_input(self, sec_to_sleep: float = 0) -> None:
         period_adjustment_element = self.driver.find_element_by_xpath(
@@ -192,7 +191,7 @@ class Crawler:
             )
         )
         save_screenshot_as_png(self.driver, backtest_results_element, params_filename)
-        logging.info('done saving chart screenshot as PNG')
+        logger.info('done saving chart screenshot as PNG')
 
     def _click_performance_brief(self, sec_to_sleep: float = 0) -> None:
         wait_and_click(
@@ -256,7 +255,7 @@ class Crawler:
             # load/save cookies
             if not os.path.exists(COOKIE_PATH):
                 # no cookies are found yet
-                logging.info(
+                logger.info(
                     'use the browser to log in, then exit and rerun the program'
                 )
                 _ = input('press any key to exit')
@@ -387,27 +386,10 @@ class Crawler:
             self.driver.quit()
 
         except Exception:
-            logging.exception(traceback.format_exc())
+            logger.exception(traceback.format_exc())
             self.driver.quit()
 
 
 if __name__ == '__main__':
-    import logging
-
-    # initailize logger
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s [%(levelname)s] %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
-        handlers=[
-            logging.FileHandler(LOG_PATH, 'a', 'utf-8'),
-            logging.StreamHandler(),
-        ]
-        if __PROD__
-        else [
-            logging.StreamHandler(),
-        ],
-    )
-
     crawler = Crawler()
     crawler.main()

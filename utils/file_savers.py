@@ -1,7 +1,4 @@
 import os
-
-from typing import Dict
-
 import pandas as pd
 from PIL import Image
 from selenium.webdriver.remote.webdriver import WebDriver
@@ -94,7 +91,7 @@ def save_performance_brief_to_csv(
 ) -> None:
     tbl = table_element.get_attribute('outerHTML')
     df = pd.read_html(tbl)[0]
-    # logging.info(df)
+    # logger.info(df)
     df.to_csv(
         os.path.join(
             'results', EXECUTION_TIME, 'performance', '{}.csv'.format(params_filename)

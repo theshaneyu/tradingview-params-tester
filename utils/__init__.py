@@ -1,8 +1,12 @@
 import os
-import logging
+from utils.logger import setup_logger
 
 from .browser_helpers import *
 from .file_savers import *
+
+
+logger = setup_logger('file_and_stdout_logger', True)
+logger_only_stdout = setup_logger('stdout_logger', False)
 
 
 def get_chromedriver_path() -> str:
@@ -43,7 +47,7 @@ def print_current_info(
         win_rate,
     ) = csv_item_list
 
-    logging.info(
+    logger_only_stdout.info(
         (
             'current pamameters: {} {} {} {} | profit: {} |'
             ' win_rate: {} | iterations ({}/{}) | estimatedly takes {:.2f} hours |'
