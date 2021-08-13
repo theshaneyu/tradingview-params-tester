@@ -41,6 +41,9 @@ def create_files_and_folders() -> None:
         wf.write('Period,Amplification,LongTakeProfit,ShortTakeProfit,Profit,WinRate\n')
 
 
+create_files_and_folders()
+
+
 def save_screenshot_as_png(
     driver: WebDriver, element: WebElement, params_filename: str
 ) -> None:
