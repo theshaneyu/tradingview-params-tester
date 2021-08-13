@@ -8,6 +8,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import StaleElementReferenceException
 
 from constants import (
     EXECUTION_TIME,
@@ -172,16 +173,32 @@ class Crawler:
             sleep(sec_to_sleep)
 
     def _save_profit_and_win_rate_to_csv(self, current_params: CurrentParams) -> str:
-        profit: str = self.driver.find_element_by_xpath(
-            '//*[@id="bottom-area"]/div[4]/div[3]/div/div/div[1]/div[1]/strong'
-        ).text
-        profit = profit.replace('$ ', '')
-        win_rate: str = self.driver.find_element_by_xpath(
-            '//*[@id="bottom-area"]/div[4]/div[3]/div/div/div[1]/div[3]/strong'
-        ).text
-        win_rate = '{:.4f}'.format(float(win_rate.replace(' %', '')) / 100.0)
+        try:
+            profit: str = self.driver.find_element_by_xpath(
+                '//*[@id="bottom-area"]/div[4]/div[3]/div/div/div[1]/div[1]/strong'
+            ).text
+            profit = profit.replace('$ ', '')
+            win_rate: str = self.driver.find_element_by_xpath(
+                '//*[@id="bottom-area"]/div[4]/div[3]/div/div/div[1]/div[3]/strong'
+            ).text
+            win_rate = '{:.4f}'.format(float(win_rate.replace(' %', '')) / 100.0)
 
-        return append_params_csv(current_params, profit, win_rate)
+            return append_params_csv(current_params, profit, win_rate)
+
+        except StaleElementReferenceException:
+            sleep(2)
+
+            retried_profit: str = self.driver.find_element_by_xpath(
+                '//*[@id="bottom-area"]/div[4]/div[3]/div/div/div[1]/div[1]/strong'
+            ).text
+            retried_profit = retried_profit.replace('$ ', '')
+            retried_win_rate: str = self.driver.find_element_by_xpath(
+                '//*[@id="bottom-area"]/div[4]/div[3]/div/div/div[1]/div[3]/strong'
+            ).text
+            retried_win_rate = '{:.4f}'.format(
+                float(retried_win_rate.replace(' %', '')) / 100.0
+            )
+            return append_params_csv(current_params, retried_profit, retried_win_rate)
 
     def _screenshot_backtest_result(self, params_filename: str) -> None:
         backtest_results_element = self.driver.find_element_by_css_selector(
