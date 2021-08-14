@@ -1,12 +1,14 @@
 import os
 
+from logger import logger_only_stdout
+
 from .file_savers import *
+from .email_sender import *
 from .browser_helpers import *
-from .logger import *
+from .device_limit_checker import DeviceLimitChecker
 
 
-logger = setup_logger('file_and_stdout_logger', True)
-logger_only_stdout = setup_logger('stdout_logger', False)
+limit_checker = DeviceLimitChecker()
 
 
 def get_chromedriver_path() -> str:

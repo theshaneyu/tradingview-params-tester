@@ -23,8 +23,9 @@ from constants import (
     __PROD__,
 )
 from utils import (
-    logger,
+    limit_checker,
     fill_input,
+    send_email,
     save_cookie,
     load_cookie,
     wait_and_click,
@@ -36,6 +37,7 @@ from utils import (
     save_screenshot_as_png,
     save_performance_brief_to_csv,
 )
+from logger import logger
 from shared_types import CurrentParams, Params
 from calculate_iterations import get_estamated_interations_and_time
 
@@ -182,6 +184,9 @@ class Crawler:
                     '//*[@id="bottom-area"]/div[4]/div[3]/div/div/div[1]/div[3]/strong'
                 ).text
                 win_rate = '{:.4f}'.format(float(win_rate.replace(' %', '')) / 100.0)
+
+                # check if `超過裝置上限` happened
+                limit_checker.check('{},{}'.format(profit, win_rate))
 
                 return append_params_csv(current_params, profit, win_rate)
 
@@ -404,5 +409,8 @@ class Crawler:
 
 
 if __name__ == '__main__':
+
     crawler = Crawler()
     crawler.main()
+
+    send_email('爬蟲執行完畢', '爬蟲執行完畢')

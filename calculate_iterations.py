@@ -1,7 +1,7 @@
 import sys
 from typing import List, Literal, Tuple
 
-from utils import logger
+from logger import logger
 from constants import (
     INCREASE_SIZE,
     PARAMS_LOWER_LIMITS,
