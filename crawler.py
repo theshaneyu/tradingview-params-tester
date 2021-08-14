@@ -34,7 +34,6 @@ from utils import (
     print_current_info,
     get_chromedriver_path,
     save_screenshot_as_png,
-    create_files_and_folders,
     save_performance_brief_to_csv,
 )
 from shared_types import CurrentParams, Params
@@ -59,7 +58,7 @@ class Crawler:
         (
             self.estimated_total_iterations,
             self.estimated_time,
-        ) = get_estamated_interations_and_time()
+        ) = get_estamated_interations_and_time(log_info=True)
         self.current_iteration = 0
 
     def _set_driver(self) -> None:

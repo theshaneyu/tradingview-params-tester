@@ -1,6 +1,7 @@
 import sys
 from typing import List, Literal, Tuple
 
+from utils import logger
 from constants import (
     INCREASE_SIZE,
     PARAMS_LOWER_LIMITS,
@@ -16,7 +17,7 @@ REMOVED_PARAMS: List[Literal['period', 'amplification', 'long_take_profit']] = [
 ]
 
 
-def get_estamated_interations_and_time(print_info: bool = False) -> Tuple[int, float]:
+def get_estamated_interations_and_time(log_info: bool = False) -> Tuple[int, float]:
     """calculate estimated iterations and time to take based on
        the script config
 
@@ -41,9 +42,9 @@ def get_estamated_interations_and_time(print_info: bool = False) -> Tuple[int, f
     total_hours = ((iterations * SEC_TO_SLEEP_PER_ITERATION) / 60.0) / 60.0
     total_days = total_hours / 24.0
 
-    if print_info:
+    if log_info:
         for param in REMOVED_PARAMS:
-            print(
+            logger.info(
                 '{} ({} -> {} | move {} per iter): {} iterations'.format(
                     param,
                     float(PARAMS_LOWER_LIMITS[param])
@@ -61,13 +62,13 @@ def get_estamated_interations_and_time(print_info: bool = False) -> Tuple[int, f
                 )
             )
 
-        print('total iterations: {}'.format(int(iterations)))
-        print('{} sec / per iteration'.format(float(SEC_TO_SLEEP_PER_ITERATION)))
-        print('total time (hours): {}'.format(total_hours))
-        print('total time (days): {}'.format(total_days))
+        logger.info('total iterations: {}'.format(int(iterations)))
+        logger.info('{} sec / per iteration'.format(float(SEC_TO_SLEEP_PER_ITERATION)))
+        logger.info('total time (hours): {}'.format(total_hours))
+        logger.info('total time (days): {}'.format(total_days))
 
     return int(iterations), total_hours
 
 
 if __name__ == '__main__':
-    get_estamated_interations_and_time(print_info=True)
+    get_estamated_interations_and_time(log_info=True)
