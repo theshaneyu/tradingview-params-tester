@@ -8,7 +8,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Optional, List
 
-from constants import __PROD__
+from constants import __PROD__, SEND_EMAIL
 
 from logger import logger
 
@@ -22,7 +22,7 @@ EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
 if EMAIL_PASSWORD is None:
     raise Exception('no email password found in .env')
 
-if __PROD__:
+if __PROD__ and SEND_EMAIL:
     with smtplib.SMTP(host="smtp.gmail.com", port=587) as smtp:
         try:
             smtp.ehlo()  # 驗證SMTP伺服器
@@ -38,6 +38,9 @@ if __PROD__:
 def send_email(
     subject: str, content: str, assign_receivers: Optional[List['str']] = None
 ) -> None:
+    if not SEND_EMAIL:
+        return
+
     email_content = MIMEMultipart()
     email_content["subject"] = subject
     email_content["from"] = formataddr((str(Header('Maven 梅文', 'utf-8')), SENDER))

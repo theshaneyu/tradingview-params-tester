@@ -44,31 +44,36 @@ ParamIndexMapper = TypedDict(
 )
 
 
+# constants
+EXECUTION_TIME = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+
+SEND_EMAIL = False
+
 # seconds to sleep after each iteration
 SEC_TO_SLEEP_PER_ITERATION = 1.2
-SEC_TO_SLEEP_WHEN_STALE_ELEMENT_OCCUR = 1
 
-EXECUTION_TIME = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+SEC_TO_SLEEP_WHEN_STALE_ELEMENT_OCCUR = 1
 
 LOG_PATH = os.path.join('logs', '{}.log'.format(EXECUTION_TIME))
 
 PYTHON_ENV = os.getenv('PYTHON_ENV')
 
+ACCOUNT = os.getenv('ACCOUNT')
+
+# assertions
 assert PYTHON_ENV is not None, "no 'PYTHON_ENV' found in .env"
 assert PYTHON_ENV in (
     'dev',
     'prod',
 ), "PYTHON_ENV can only be 'dev' or 'prod', found '{}'".format(PYTHON_ENV)
 
-__PROD__ = PYTHON_ENV == 'prod'
-
-ACCOUNT = os.getenv('ACCOUNT')
-
 assert ACCOUNT is not None, "no 'ACCOUNT' found in .env"
 assert ACCOUNT in (
     'shane',
     'kw',
 ), "ACCOUNT can only be 'shane' or 'kw', found '{}'".format(ACCOUNT)
+
+__PROD__ = PYTHON_ENV == 'prod'
 
 PARAMS: Params = ['period', 'amplification', 'long_take_profit', 'short_take_profit']
 
