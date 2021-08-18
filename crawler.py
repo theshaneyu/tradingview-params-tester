@@ -11,16 +11,18 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import StaleElementReferenceException
 
 from constants import (
-    EXECUTION_TIME,
-    INCREASE_SIZE,
-    INDEXES,
     PARAMS,
-    PARAMS_UPPER_LIMITS,
-    PARAMS_LOWER_LIMITS,
+    ACCOUNT,
+    INDEXES,
+    __PROD__,
+    INCREASE_SIZE,
+    EXECUTION_TIME,
     PARAM_INDEX_MAPPER,
     INDEX_PARAM_MAPPER,
+    PARAMS_UPPER_LIMITS,
+    PARAMS_LOWER_LIMITS,
     SEC_TO_SLEEP_PER_ITERATION,
-    __PROD__,
+    SEC_TO_SLEEP_WHEN_STALE_ELEMENT_OCCUR,
 )
 from utils import (
     limit_checker,
@@ -31,8 +33,8 @@ from utils import (
     wait_and_click,
     check_if_visible,
     append_params_csv,
-    get_params_filename,
     print_current_info,
+    get_params_filename,
     get_chromedriver_path,
     save_screenshot_as_png,
     save_performance_brief_to_csv,
@@ -46,11 +48,17 @@ from calculate_iterations import get_estamated_interations_and_time
 Param = Literal['period', 'amplification', 'long_take_profit', 'short_take_profit']
 
 # constants
-URL = 'https://tw.tradingview.com/chart/Iyu69JVU/'
+URL = (
+    'https://tw.tradingview.com/chart/Iyu69JVU/'
+    if ACCOUNT == 'shane'
+    else 'https://tw.tradingview.com/chart/6DUbI1y5/'
+)
 
 SAVE_EXTRA = False
 
-COOKIE_PATH = os.path.join('.tmp', 'cookie')
+COOKIE_PATH = os.path.join(
+    'cookies', ACCOUNT if ACCOUNT is not None else 'shane', 'cookie'
+)
 
 
 class Crawler:
@@ -191,7 +199,7 @@ class Crawler:
                 return append_params_csv(current_params, profit, win_rate)
 
             except StaleElementReferenceException:
-                sleep(2)
+                sleep(SEC_TO_SLEEP_WHEN_STALE_ELEMENT_OCCUR)
                 logger.warning(
                     'stale element, element is not attached to the page document'
                 )
@@ -280,6 +288,7 @@ class Crawler:
                 load_cookie(self.driver, COOKIE_PATH)
 
             self.driver.get(URL)
+            _ = input('check the TradingView web UI, then press any key to start 🚀')
 
             # hover over the FDC_NQ area in order to show the gearwheel
             self._hover_fdc_nq(sec_to_sleep=1)
@@ -405,6 +414,8 @@ class Crawler:
                     filename=os.path.join('logs', '{}.png'.format(EXECUTION_TIME))
                 )
             logger.exception(traceback.format_exc())
+            # _ = input('error occur 💔')
+            send_email('error occur 💔', traceback.format_exc())
             self.driver.quit()
 
 

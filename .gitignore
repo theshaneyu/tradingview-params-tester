@@ -4,6 +4,7 @@ chromedriver
 results
 config.json
 logs
+cookies
 
 # conventional config starts from below
 

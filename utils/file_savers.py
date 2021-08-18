@@ -12,6 +12,12 @@ def create_files_and_folders() -> None:
     # check cookies folder
     if not os.path.exists('.tmp'):
         os.makedirs('.tmp')
+    if not os.path.exists('cookies'):
+        os.makedirs('cookies')
+    if not os.path.exists(os.path.join('cookies', 'shane')):
+        os.makedirs(os.path.join('cookies', 'shane'))
+    if not os.path.exists(os.path.join('cookies', 'kw')):
+        os.makedirs(os.path.join('cookies', 'kw'))
 
     # check results folder
     if not os.path.exists('results'):
