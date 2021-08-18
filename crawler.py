@@ -21,7 +21,7 @@ from constants import (
     INDEX_PARAM_MAPPER,
     PARAMS_UPPER_LIMITS,
     PARAMS_LOWER_LIMITS,
-    SEC_TO_SLEEP_PER_ITERATION,
+    SEC_TO_SLEEP_AFTER_INCREASING_PARAM,
     SEC_TO_SLEEP_WHEN_STALE_ELEMENT_OCCUR,
 )
 from utils import (
@@ -303,7 +303,7 @@ class Crawler:
             # period, amplification, long_take_profit, short_take_profit
             current_params = self._get_current_params_from_browser()
 
-            while float(current_params['period']) < PARAMS_UPPER_LIMITS['period']:
+            while float(current_params['period']) <= PARAMS_UPPER_LIMITS['period']:
                 # # the loop of period
                 # increased_period = self._increase_param('period', current_params)
                 # current_params['period'] = str(increased_period)
@@ -311,11 +311,11 @@ class Crawler:
 
                 while (
                     float(current_params['amplification'])
-                    < PARAMS_UPPER_LIMITS['amplification']
+                    <= PARAMS_UPPER_LIMITS['amplification']
                 ):
                     while (
                         float(current_params['long_take_profit'])
-                        < PARAMS_UPPER_LIMITS['long_take_profit']
+                        <= PARAMS_UPPER_LIMITS['long_take_profit']
                     ):
                         # the loop of long/short take profit
                         # increase the `long_take_profit` but NOT to hit ENTER
@@ -324,6 +324,9 @@ class Crawler:
                         )
                         # increase the `short_take_profit` and hit ENTER
                         self._increase_param('short_take_profit', current_params)
+
+                        sleep(SEC_TO_SLEEP_AFTER_INCREASING_PARAM)
+
                         # set the current params from the browser
                         current_params = self._get_current_params_from_browser()
                         # save profit and win rate data from the browser
@@ -335,13 +338,15 @@ class Crawler:
                             self.estimated_total_iterations,
                             self.estimated_time,
                         )
-                        sleep(SEC_TO_SLEEP_PER_ITERATION)
 
                     # after finishing the loop of long/short take profit
                     # 1. first reset the long/short take profit
                     self._reset_params(['long_take_profit', 'short_take_profit'], 1)
                     # 2. increase the `amplification` and press ENTER
                     self._increase_param('amplification', current_params)
+
+                    sleep(SEC_TO_SLEEP_AFTER_INCREASING_PARAM)
+
                     # 3. set the current params from the browser
                     current_params = self._get_current_params_from_browser()
                     # 4. save profit and win_rate from the browser
@@ -353,7 +358,6 @@ class Crawler:
                         self.estimated_total_iterations,
                         self.estimated_time,
                     )
-                    sleep(SEC_TO_SLEEP_PER_ITERATION)
 
                 # after finishing the loop of amplification
                 # 1. first reset the amplification and long/short take profit
@@ -361,6 +365,9 @@ class Crawler:
                 self._reset_params(['amplification'], 1)
                 # 2. increase the `period` and press ENTER
                 self._increase_param('period', current_params)
+
+                sleep(SEC_TO_SLEEP_AFTER_INCREASING_PARAM)
+
                 # 3. set the current params from the browser
                 current_params = self._get_current_params_from_browser()
                 # 4. save profit and win_rate from the browser
@@ -372,7 +379,6 @@ class Crawler:
                     self.estimated_total_iterations,
                     self.estimated_time,
                 )
-                sleep(SEC_TO_SLEEP_PER_ITERATION)
 
             # # track the current params
             # current_params = self._get_current_params()
@@ -399,6 +405,7 @@ class Crawler:
                 # save `績效摘要` table as csv
                 self._save_performance_brief(current_params_filename)
 
+            send_email('爬蟲執行完畢', '爬蟲執行完畢')
             _ = input('\nPress any key to exit 🎉')
             self.driver.quit()
 
@@ -423,5 +430,3 @@ if __name__ == '__main__':
 
     crawler = Crawler()
     crawler.main()
-
-    send_email('爬蟲執行完畢', '爬蟲執行完畢')

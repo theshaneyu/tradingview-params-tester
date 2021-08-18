@@ -6,7 +6,7 @@ from constants import (
     INCREASE_SIZE,
     PARAMS_LOWER_LIMITS,
     PARAMS_UPPER_LIMITS,
-    SEC_TO_SLEEP_PER_ITERATION,
+    SEC_TO_SLEEP_AFTER_INCREASING_PARAM,
 )
 
 
@@ -39,7 +39,7 @@ def get_estamated_interations_and_time(log_info: bool = False) -> Tuple[int, flo
         iterations = iterations * iterations_of_this_param
         param_iter[param] = iterations_of_this_param
 
-    total_hours = ((iterations * SEC_TO_SLEEP_PER_ITERATION) / 60.0) / 60.0
+    total_hours = ((iterations * SEC_TO_SLEEP_AFTER_INCREASING_PARAM) / 60.0) / 60.0
     total_days = total_hours / 24.0
 
     if log_info:
@@ -63,7 +63,7 @@ def get_estamated_interations_and_time(log_info: bool = False) -> Tuple[int, flo
             )
 
         logger.info('total iterations: {}'.format(int(iterations)))
-        logger.info('{} sec / per iteration'.format(float(SEC_TO_SLEEP_PER_ITERATION)))
+        logger.info('{} sec / per iteration'.format(float(SEC_TO_SLEEP_AFTER_INCREASING_PARAM)))
         logger.info('total time (hours): {}'.format(total_hours))
         logger.info('total time (days): {}'.format(total_days))
 

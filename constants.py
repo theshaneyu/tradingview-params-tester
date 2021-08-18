@@ -50,7 +50,7 @@ EXECUTION_TIME = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 SEND_EMAIL = False
 
 # seconds to sleep after each iteration
-SEC_TO_SLEEP_PER_ITERATION = 1.2
+SEC_TO_SLEEP_AFTER_INCREASING_PARAM = 1.2
 
 SEC_TO_SLEEP_WHEN_STALE_ELEMENT_OCCUR = 1
 
