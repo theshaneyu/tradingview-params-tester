@@ -8,7 +8,10 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import (
+    StaleElementReferenceException,
+    NoSuchElementException,
+)
 
 from constants import (
     PARAMS,
@@ -184,12 +187,26 @@ class Crawler:
     def _save_profit_and_win_rate_to_csv(self, current_params: CurrentParams) -> str:
         while True:
             try:
-                profit: str = self.driver.find_element_by_xpath(
-                    '//*[@id="bottom-area"]/div[4]/div[3]/div/div/div[1]/div[1]/strong'
+                # check if TV is calculating
+                report_content: WebElement = self.driver.find_element_by_css_selector(
+                    '#bottom-area > div.bottom-widgetbar-content.backtesting > div.backtesting-content-wrapper > div'
+                )
+                if 'opacity-transition fade' in report_content.get_attribute('class'):
+                    sleep(0.05)
+                    continue
+
+                profit: str = self.driver.find_element_by_css_selector(
+                    (
+                        'div.backtesting-content-wrapper > div > '
+                        'div > div.report-data > div:nth-child(1) > strong'
+                    )
                 ).text
                 profit = profit.replace('$ ', '')
-                win_rate: str = self.driver.find_element_by_xpath(
-                    '//*[@id="bottom-area"]/div[4]/div[3]/div/div/div[1]/div[3]/strong'
+                win_rate: str = self.driver.find_element_by_css_selector(
+                    (
+                        'div.backtesting-content-wrapper > div > '
+                        'div > div.report-data > div:nth-child(3) > strong'
+                    )
                 ).text
                 win_rate = '{:.4f}'.format(float(win_rate.replace(' %', '')) / 100.0)
 
@@ -204,6 +221,9 @@ class Crawler:
                     'stale element, element is not attached to the page document'
                 )
                 continue
+
+            except NoSuchElementException:
+                _ = input('please fix the UI and press any key to continue')
 
     def _screenshot_backtest_result(self, params_filename: str) -> None:
         backtest_results_element = self.driver.find_element_by_css_selector(
@@ -325,7 +345,7 @@ class Crawler:
                         # increase the `short_take_profit` and hit ENTER
                         self._increase_param('short_take_profit', current_params)
 
-                        sleep(SEC_TO_SLEEP_AFTER_INCREASING_PARAM)
+                        # sleep(SEC_TO_SLEEP_AFTER_INCREASING_PARAM)
 
                         # set the current params from the browser
                         current_params = self._get_current_params_from_browser()
@@ -345,7 +365,7 @@ class Crawler:
                     # 2. increase the `amplification` and press ENTER
                     self._increase_param('amplification', current_params)
 
-                    sleep(SEC_TO_SLEEP_AFTER_INCREASING_PARAM)
+                    # sleep(SEC_TO_SLEEP_AFTER_INCREASING_PARAM)
 
                     # 3. set the current params from the browser
                     current_params = self._get_current_params_from_browser()
@@ -366,7 +386,7 @@ class Crawler:
                 # 2. increase the `period` and press ENTER
                 self._increase_param('period', current_params)
 
-                sleep(SEC_TO_SLEEP_AFTER_INCREASING_PARAM)
+                # sleep(SEC_TO_SLEEP_AFTER_INCREASING_PARAM)
 
                 # 3. set the current params from the browser
                 current_params = self._get_current_params_from_browser()
