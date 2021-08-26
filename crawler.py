@@ -9,6 +9,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import (
+    ElementNotInteractableException,
     StaleElementReferenceException,
     NoSuchElementException,
 )
@@ -310,12 +311,16 @@ class Crawler:
             float(current_params[param_to_increase]) + INCREASE_SIZE[param_to_increase]
         )
 
-        fill_input(
-            element_to_fill,
-            str(increased_float)
-            # only `amplification` needs to fill in `float`, otherwise `int`
-            if param_to_increase == 'amplification' else str(int(increased_float)),
-        )
+        try:
+            fill_input(
+                element_to_fill,
+                str(increased_float)
+                # only `amplification` needs to fill in `float`, otherwise `int`
+                if param_to_increase == 'amplification' else str(int(increased_float)),
+            )
+        except ElementNotInteractableException:
+            send_email('error occur: "ElementNotInteractableException"', traceback.format_exc())
+            _ = input('please fix the error and press any key to continue 👀')
 
         # press ENTER after filling in the increased param
         if press_enter:

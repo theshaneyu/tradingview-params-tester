@@ -47,7 +47,7 @@ ParamIndexMapper = TypedDict(
 # constants
 EXECUTION_TIME = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 
-SEND_EMAIL = False
+SEND_EMAIL = True
 
 # seconds to sleep after each iteration
 SEC_TO_SLEEP_FOR_IDENTICAL_REPORT = 0.2
