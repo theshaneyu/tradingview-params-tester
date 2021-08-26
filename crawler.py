@@ -24,7 +24,8 @@ from constants import (
     INDEX_PARAM_MAPPER,
     PARAMS_UPPER_LIMITS,
     PARAMS_LOWER_LIMITS,
-    SEC_TO_SLEEP_AFTER_INCREASING_PARAM,
+    SEC_TO_SLEEP_FOR_IDENTICAL_REPORT,
+    MAX_WAITING_SEC_FOR_IDENTICAL_REPORT,
     SEC_TO_SLEEP_WHEN_STALE_ELEMENT_OCCUR,
 )
 from utils import (
@@ -68,11 +69,13 @@ class Crawler:
     def __init__(self) -> None:
         self.chromedriver_path = get_chromedriver_path()
         self._set_driver()
-        (
-            self.estimated_total_iterations,
-            self.estimated_time,
-        ) = get_estamated_interations_and_time(log_info=True)
+        self.estimated_total_iterations = get_estamated_interations_and_time(
+            log_info=True
+        )
         self.current_iteration = 0
+        self.last_profit = ''
+        self.last_win_rate = ''
+        self.total_sec_been_waiting_for_report = 0.0
 
     def _set_driver(self) -> None:
         options = webdriver.ChromeOptions()
@@ -187,14 +190,6 @@ class Crawler:
     def _save_profit_and_win_rate_to_csv(self, current_params: CurrentParams) -> str:
         while True:
             try:
-                # check if TV is calculating
-                report_content: WebElement = self.driver.find_element_by_css_selector(
-                    '#bottom-area > div.bottom-widgetbar-content.backtesting > div.backtesting-content-wrapper > div'
-                )
-                if 'opacity-transition fade' in report_content.get_attribute('class'):
-                    sleep(0.05)
-                    continue
-
                 profit: str = self.driver.find_element_by_css_selector(
                     (
                         'div.backtesting-content-wrapper > div > '
@@ -209,6 +204,42 @@ class Crawler:
                     )
                 ).text
                 win_rate = '{:.4f}'.format(float(win_rate.replace(' %', '')) / 100.0)
+
+                # check if the report has been updated
+                if profit == self.last_profit and win_rate == self.last_win_rate:
+                    if (
+                        'opacity-transition fade'
+                    ) in self.driver.find_element_by_css_selector(
+                        (
+                            '#bottom-area > div.bottom-widgetbar-content.backtesting >'
+                            ' div.backtesting-content-wrapper > div'
+                        )
+                    ).get_attribute(
+                        'class'
+                    ):
+                        # the report area fades
+                        logger.debug('identical report and faded report UI')
+                        sleep(SEC_TO_SLEEP_FOR_IDENTICAL_REPORT)
+                        continue
+
+                    # found same report, but the report area doesn't fade
+                    # wait for up to 5 seconds (this should rarely happen)
+                    logger.debug('identical report but NOT faded')
+                    sleep(SEC_TO_SLEEP_FOR_IDENTICAL_REPORT)
+                    self.total_sec_been_waiting_for_report += (
+                        SEC_TO_SLEEP_FOR_IDENTICAL_REPORT
+                    )
+
+                    if (
+                        self.total_sec_been_waiting_for_report
+                        <= MAX_WAITING_SEC_FOR_IDENTICAL_REPORT
+                    ):
+                        continue
+
+                    self.total_sec_been_waiting_for_report = 0.0
+
+                self.last_profit = profit
+                self.last_win_rate = win_rate
 
                 # check if `超過裝置上限` happened
                 limit_checker.check('{},{}'.format(profit, win_rate))
@@ -356,7 +387,6 @@ class Crawler:
                             csv_line,
                             self.current_iteration,
                             self.estimated_total_iterations,
-                            self.estimated_time,
                         )
 
                     # after finishing the loop of long/short take profit
@@ -376,7 +406,6 @@ class Crawler:
                         csv_line,
                         self.current_iteration,
                         self.estimated_total_iterations,
-                        self.estimated_time,
                     )
 
                 # after finishing the loop of amplification
@@ -397,7 +426,6 @@ class Crawler:
                     csv_line,
                     self.current_iteration,
                     self.estimated_total_iterations,
-                    self.estimated_time,
                 )
 
             # # track the current params

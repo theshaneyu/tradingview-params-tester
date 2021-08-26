@@ -1,5 +1,6 @@
 import os
 
+from constants import ACCOUNT
 from logger import logger_only_stdout
 
 from .file_savers import *
@@ -33,7 +34,6 @@ def print_current_info(
     csv_line: str,
     current_iter: int,
     total_iter: int,
-    total_hours: float,
 ) -> None:
     csv_item_list = csv_line.split(',')
 
@@ -52,8 +52,7 @@ def print_current_info(
     logger_only_stdout.info(
         (
             'current pamameters: {} {} {} {} | profit: {} |'
-            ' win_rate: {} | iterations ({}/{}) | estimatedly takes {:.2f} hours |'
-            ' start time {}'.format(
+            ' win_rate: {} | iterations ({}/{}) | start time {} | user: {}'.format(
                 period,
                 amplification,
                 long_take_profit,
@@ -62,8 +61,8 @@ def print_current_info(
                 win_rate,
                 current_iter,
                 total_iter,
-                total_hours,
                 EXECUTION_TIME,
+                ACCOUNT,
             )
         )
     )

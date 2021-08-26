@@ -50,9 +50,11 @@ EXECUTION_TIME = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 SEND_EMAIL = False
 
 # seconds to sleep after each iteration
-SEC_TO_SLEEP_AFTER_INCREASING_PARAM = 1.5
+SEC_TO_SLEEP_FOR_IDENTICAL_REPORT = 0.2
 
-SEC_TO_SLEEP_WHEN_STALE_ELEMENT_OCCUR = 1
+MAX_WAITING_SEC_FOR_IDENTICAL_REPORT = 5
+
+SEC_TO_SLEEP_WHEN_STALE_ELEMENT_OCCUR = 0.2
 
 LOG_PATH = os.path.join('logs', '{}.log'.format(EXECUTION_TIME))
 
