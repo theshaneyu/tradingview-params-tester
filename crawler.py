@@ -40,7 +40,7 @@ from utils import (
     append_params_csv,
     print_current_info,
     get_params_filename,
-    get_chromedriver_path,
+    get_driver_path,
     save_screenshot_as_png,
     save_performance_brief_to_csv,
 )
@@ -68,7 +68,7 @@ COOKIE_PATH = os.path.join(
 
 class Crawler:
     def __init__(self) -> None:
-        self.chromedriver_path = get_chromedriver_path()
+        self.driver_path = get_driver_path()
         self._set_driver()
         self.estimated_total_iterations = get_estamated_interations_and_time(
             log_info=True
@@ -85,7 +85,7 @@ class Crawler:
         options.add_argument('window-size=700,1390')
 
         self.driver = webdriver.Chrome(
-            executable_path=self.chromedriver_path, options=options
+            executable_path=self.driver_path, options=options
         )
 
     def _hover_fdc_nq(self, sec_to_sleep: float = 0) -> None:
@@ -319,7 +319,9 @@ class Crawler:
                 if param_to_increase == 'amplification' else str(int(increased_float)),
             )
         except ElementNotInteractableException:
-            send_email('error occur: "ElementNotInteractableException"', traceback.format_exc())
+            send_email(
+                'error occur: "ElementNotInteractableException"', traceback.format_exc()
+            )
             _ = input('please fix the error and press any key to continue 👀')
 
         # press ENTER after filling in the increased param

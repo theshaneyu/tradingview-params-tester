@@ -12,13 +12,13 @@ from .device_limit_checker import DeviceLimitChecker
 limit_checker = DeviceLimitChecker()
 
 
-def get_chromedriver_path() -> str:
-    # check chromedriver's existence
-    files = os.listdir('chromedriver')
+def get_driver_path() -> str:
+    # check driver's existence
+    files = os.listdir('drivers')
     if len(files) != 1:
-        raise Exception('Chromedriver not found')
+        raise Exception('driver not found')
 
-    return os.path.join('chromedriver', files[0])
+    return os.path.join('drivers', files[0])
 
 
 def get_params_filename(params: CurrentParams) -> str:

@@ -1,10 +1,11 @@
 # for this project
-chromedriver
+drivers
 .tmp
 results
 config.json
 logs
 cookies
+backups
 
 # conventional config starts from below
 
