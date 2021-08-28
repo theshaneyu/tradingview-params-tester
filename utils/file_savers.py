@@ -14,10 +14,13 @@ def create_files_and_folders() -> None:
         os.makedirs('.tmp')
     if not os.path.exists('cookies'):
         os.makedirs('cookies')
-    if not os.path.exists(os.path.join('cookies', 'shane')):
-        os.makedirs(os.path.join('cookies', 'shane'))
-    if not os.path.exists(os.path.join('cookies', 'kw')):
-        os.makedirs(os.path.join('cookies', 'kw'))
+
+    for driver_type in ['chrome', 'edge']:
+        if not os.path.exists(os.path.join('cookies', driver_type)):
+            os.makedirs(os.path.join('cookies', driver_type))
+        for account in ['shane', 'kw']:
+            if not os.path.exists(os.path.join('cookies', driver_type, account)):
+                os.makedirs(os.path.join('cookies', driver_type, account))
 
     # check results folder
     if not os.path.exists('results'):

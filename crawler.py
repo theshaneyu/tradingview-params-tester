@@ -13,6 +13,7 @@ from selenium.common.exceptions import (
     StaleElementReferenceException,
     NoSuchElementException,
 )
+from msedge.selenium_tools import EdgeOptions, Edge
 
 from constants import (
     PARAMS,
@@ -61,8 +62,10 @@ URL = (
 
 SAVE_EXTRA = False
 
+DRIVER_TYPE: Literal['chrome', 'edge'] = 'edge'
+
 COOKIE_PATH = os.path.join(
-    'cookies', ACCOUNT if ACCOUNT is not None else 'shane', 'cookie'
+    'cookies', DRIVER_TYPE, ACCOUNT if ACCOUNT is not None else 'shane', 'cookie'
 )
 
 
@@ -79,14 +82,17 @@ class Crawler:
         self.total_sec_been_waiting_for_report = 0.0
 
     def _set_driver(self) -> None:
-        options = webdriver.ChromeOptions()
-        options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        # options = webdriver.ChromeOptions()
+        # options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        # # options.add_argument('headless')
+        # options.add_argument('window-size=700,1390')
+
+        options = EdgeOptions()
+        # options.use_chromium = True
         # options.add_argument('headless')
         options.add_argument('window-size=700,1390')
 
-        self.driver = webdriver.Chrome(
-            executable_path=self.driver_path, options=options
-        )
+        self.driver = Edge(executable_path=self.driver_path, options=options)
 
     def _hover_fdc_nq(self, sec_to_sleep: float = 0) -> None:
         fdc_nq_xpath = (
@@ -340,6 +346,9 @@ class Crawler:
                 )
                 _ = input('press any key to exit')
                 save_cookie(self.driver, COOKIE_PATH)
+                logger.info(
+                    "{}'s cookies are saved  at {}".format(ACCOUNT, COOKIE_PATH)
+                )
                 self.driver.quit()
                 sys.exit()
             else:
