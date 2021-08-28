@@ -328,24 +328,26 @@ class Crawler:
         if press_enter:
             element_to_fill.send_keys(Keys.RETURN)
 
+    def handle_cookies(self) -> None:
+        # load/save cookies
+        if not os.path.exists(COOKIE_PATH):
+            # no cookies are found yet
+            logger.info('use the browser to log in, then exit and rerun the program')
+            _ = input('press any key to exit')
+            save_cookie(self.driver, COOKIE_PATH)
+            self.driver.quit()
+            sys.exit()
+        else:
+            load_cookie(self.driver, COOKIE_PATH)
+    
+    def launch_browser_and_visit_url(self) -> None:
+        self.driver.get(URL)
+        self.handle_cookies()
+        self.driver.get(URL)
+
     def main(self) -> None:
         try:
-            self.driver.get(URL)
-
-            # load/save cookies
-            if not os.path.exists(COOKIE_PATH):
-                # no cookies are found yet
-                logger.info(
-                    'use the browser to log in, then exit and rerun the program'
-                )
-                _ = input('press any key to exit')
-                save_cookie(self.driver, COOKIE_PATH)
-                self.driver.quit()
-                sys.exit()
-            else:
-                load_cookie(self.driver, COOKIE_PATH)
-
-            self.driver.get(URL)
+            self.launch_browser_and_visit_url()
             _ = input('check the TradingView web UI, then press any key to start 🚀')
 
             # hover over the FDC_NQ area in order to show the gearwheel
@@ -395,6 +397,8 @@ class Crawler:
                             self.current_iteration,
                             self.estimated_total_iterations,
                         )
+
+                    # try to close the browser after each take profit loop
 
                     # after finishing the loop of long/short take profit
                     # 1. first reset the long/short take profit
