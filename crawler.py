@@ -330,6 +330,25 @@ class Crawler:
         if press_enter:
             element_to_fill.send_keys(Keys.RETURN)
 
+    def _check_contract(self) -> None:
+        contract_text = '納斯達克' if CONTRACT == 'nq' else '道瓊'
+
+        if (
+            contract_text
+            not in self.driver.find_element_by_xpath(
+                (
+                    '/html/body/div[2]/div[1]/div[2]/div[1]/div/table/tr[1]/'
+                    'td[2]/div/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]'
+                )
+            ).text
+        ):
+            # input contract and page contract mismatch
+            send_email(
+                'input contract and page contract mismatch 💥',
+                'input contract and page contract mismatch',
+            )
+            _ = input('please fix the error and continue')
+
     def handle_cookies(self) -> None:
         # load/save cookies
         if not os.path.exists(COOKIE_PATH):
@@ -346,6 +365,7 @@ class Crawler:
         self.driver.get(URL)
         self.handle_cookies()
         self.driver.get(URL)
+        self._check_contract()
 
     def main(self) -> None:
         try:
