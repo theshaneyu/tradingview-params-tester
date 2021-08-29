@@ -48,7 +48,7 @@ ParamIndexMapper = TypedDict(
 # constants
 EXECUTION_TIME = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 
-SEND_EMAIL = os.getenv('SEND_EMAIL')
+SEND_EMAIL = os.getenv('SEND_EMAIL') == '1'
 
 assert SEND_EMAIL is not None, "no 'SEND_EMAIL' found in .env"
 assert SEND_EMAIL in (
