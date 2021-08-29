@@ -19,8 +19,15 @@ print('merging: {}'.format(' & '.join(folder_list)))
 result_list: list = []
 
 for folder in sys.argv[1:]:
+    if os.path.exists(os.path.join('results', 'ym', folder)):
+        contract_folder = 'ym'
+    else:
+        contract_folder = 'nq'
+
     with open(
-        os.path.join('results', folder, 'params', '{}.csv'.format(folder)),
+        os.path.join(
+            'results', contract_folder, folder, 'params', '{}.csv'.format(folder)
+        ),
         'r',
         encoding='utf8',
     ) as rf:
@@ -33,10 +40,26 @@ for folder in sys.argv[1:]:
             result_list.append(line)
 
 
+if not os.path.exists(os.path.join('results', 'merged')):
+    os.makedirs(os.path.join('results', 'merged'))
+
+if not os.path.exists(os.path.join('results', 'merged', contract_folder)):
+    os.makedirs(os.path.join('results', 'merged', contract_folder))
+
 with open(
-    os.path.join('results', 'merged', '{}.csv'.format('+'.join(folder_list))),
+    os.path.join(
+        'results', 'merged', contract_folder, '{}.csv'.format('+'.join(folder_list))
+    ),
     'w',
     encoding='utf8',
 ) as wf:
     for line in result_list:
         wf.write(line)
+
+print(
+    'merged file generated at "{}"'.format(
+        os.path.join(
+            'results', 'merged', contract_folder, '{}.csv'.format('+'.join(folder_list))
+        )
+    )
+)
