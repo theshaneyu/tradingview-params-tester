@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 from datetime import datetime
 from typing import Literal, List, TypedDict
@@ -60,8 +61,6 @@ LOG_PATH = os.path.join('logs', '{}.log'.format(EXECUTION_TIME))
 
 PYTHON_ENV = os.getenv('PYTHON_ENV')
 
-ACCOUNT = os.getenv('ACCOUNT')
-
 # assertions
 assert PYTHON_ENV is not None, "no 'PYTHON_ENV' found in .env"
 assert PYTHON_ENV in (
@@ -69,11 +68,21 @@ assert PYTHON_ENV in (
     'prod',
 ), "PYTHON_ENV can only be 'dev' or 'prod', found '{}'".format(PYTHON_ENV)
 
-assert ACCOUNT is not None, "no 'ACCOUNT' found in .env"
+assert len(sys.argv) == 3, 'must have exactly two system arguments'
+
+ACCOUNT = sys.argv[1]
+
 assert ACCOUNT in (
     'shane',
     'kw',
 ), "ACCOUNT can only be 'shane' or 'kw', found '{}'".format(ACCOUNT)
+
+CONTRACT = sys.argv[2]
+
+assert CONTRACT in (
+    'ym',
+    'nq',
+), "CONTRACT can only be 'ym' or 'nq', found '{}'".format(ACCOUNT)
 
 __PROD__ = PYTHON_ENV == 'prod'
 

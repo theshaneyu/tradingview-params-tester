@@ -1,3 +1,4 @@
+import os
 import logging
 
 from constants import LOG_PATH, __PROD__
@@ -6,6 +7,10 @@ from constants import LOG_PATH, __PROD__
 formatter = logging.Formatter(
     fmt='%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S'
 )
+
+# check logs folder
+if not os.path.exists('logs'):
+    os.makedirs('logs')
 
 file_handler = logging.FileHandler(LOG_PATH, 'a', 'utf-8')
 file_handler.setFormatter(formatter)

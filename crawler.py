@@ -18,6 +18,7 @@ from constants import (
     PARAMS,
     ACCOUNT,
     INDEXES,
+    CONTRACT,
     __PROD__,
     INCREASE_SIZE,
     EXECUTION_TIME,
@@ -68,6 +69,7 @@ COOKIE_PATH = os.path.join(
 
 class Crawler:
     def __init__(self) -> None:
+        logger.info('ACCOUNT: {} | CONTRACT: {}'.format(ACCOUNT, CONTRACT))
         self.driver_path = get_driver_path()
         self._set_driver()
         self.estimated_total_iterations = get_estamated_interations_and_time(
@@ -339,7 +341,7 @@ class Crawler:
             sys.exit()
         else:
             load_cookie(self.driver, COOKIE_PATH)
-    
+
     def launch_browser_and_visit_url(self) -> None:
         self.driver.get(URL)
         self.handle_cookies()

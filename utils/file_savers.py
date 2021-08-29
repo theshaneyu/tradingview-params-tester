@@ -4,7 +4,7 @@ from PIL import Image
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 
-from constants import EXECUTION_TIME
+from constants import CONTRACT, EXECUTION_TIME
 from shared_types import CurrentParams
 
 
@@ -22,21 +22,25 @@ def create_files_and_folders() -> None:
     # check results folder
     if not os.path.exists('results'):
         os.makedirs('results')
-    if not os.path.exists(os.path.join('results', EXECUTION_TIME)):
-        os.makedirs(os.path.join('results', EXECUTION_TIME))
-        os.makedirs(os.path.join('results', EXECUTION_TIME, 'params'))
-        os.makedirs(os.path.join('results', EXECUTION_TIME, 'charts'))
-        os.makedirs(os.path.join('results', EXECUTION_TIME, 'performance'))
-        os.makedirs(os.path.join('results', EXECUTION_TIME, 'transactions'))
-
-    # check logs folder
-    if not os.path.exists('logs'):
-        os.makedirs('logs')
+    for contract in ['ym', 'nq']:
+        if not os.path.exists(os.path.join('results', contract)):
+            os.makedirs(os.path.join('results', contract))
+        if not os.path.exists(os.path.join('results', contract, EXECUTION_TIME)):
+            os.makedirs(os.path.join('results', contract, EXECUTION_TIME))
+            os.makedirs(os.path.join('results', contract, EXECUTION_TIME, 'params'))
+            os.makedirs(os.path.join('results', contract, EXECUTION_TIME, 'charts'))
+            os.makedirs(
+                os.path.join('results', contract, EXECUTION_TIME, 'performance')
+            )
+            os.makedirs(
+                os.path.join('results', contract, EXECUTION_TIME, 'transactions')
+            )
 
     # add header to params csv
     with open(
         os.path.join(
             'results',
+            contract,
             EXECUTION_TIME,
             'params',
             '{}.csv'.format(EXECUTION_TIME),
@@ -54,7 +58,7 @@ def save_screenshot_as_png(
     driver: WebDriver, element: WebElement, params_filename: str
 ) -> None:
     image_file_path = os.path.join(
-        'results', EXECUTION_TIME, 'charts', '{}.png'.format(params_filename)
+        'results', CONTRACT, EXECUTION_TIME, 'charts', '{}.png'.format(params_filename)
     )
 
     location = element.location
@@ -85,7 +89,11 @@ def append_params_csv(params: CurrentParams, profit: str, win_rate: str) -> str:
     )
     with open(
         os.path.join(
-            'results', EXECUTION_TIME, 'params', '{}.csv'.format(EXECUTION_TIME)
+            'results',
+            CONTRACT,
+            EXECUTION_TIME,
+            'params',
+            '{}.csv'.format(EXECUTION_TIME),
         ),
         'a',
         encoding='utf8',
@@ -103,7 +111,11 @@ def save_performance_brief_to_csv(
     # logger.info(df)
     df.to_csv(
         os.path.join(
-            'results', EXECUTION_TIME, 'performance', '{}.csv'.format(params_filename)
+            'results',
+            CONTRACT,
+            EXECUTION_TIME,
+            'performance',
+            '{}.csv'.format(params_filename),
         ),
         encoding='utf_8_sig',
     )
