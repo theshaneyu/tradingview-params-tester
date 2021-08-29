@@ -48,7 +48,13 @@ ParamIndexMapper = TypedDict(
 # constants
 EXECUTION_TIME = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 
-SEND_EMAIL = True
+SEND_EMAIL = os.getenv('SEND_EMAIL')
+
+assert SEND_EMAIL is not None, "no 'SEND_EMAIL' found in .env"
+assert SEND_EMAIL in (
+    '0',
+    '1',
+), "SEND_EMAIL can only be '0' or '1', found '{}'".format(SEND_EMAIL)
 
 # seconds to sleep after each iteration
 SEC_TO_SLEEP_FOR_IDENTICAL_REPORT = 0.2
