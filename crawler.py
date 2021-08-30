@@ -3,10 +3,8 @@ import sys
 import traceback
 from time import sleep
 from typing import Literal
-from utils.browser_helpers import get_element_until_present
 
 from selenium import webdriver
-from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.action_chains import ActionChains
@@ -33,19 +31,19 @@ from constants import (
     SEC_TO_SLEEP_WHEN_STALE_ELEMENT_OCCUR,
 )
 from utils import (
-    email_sender,
     limit_checker,
     fill_input,
     send_email,
     save_cookie,
     load_cookie,
     wait_and_click,
+    get_driver_path,
     check_if_visible,
     append_params_csv,
     print_current_info,
     get_params_filename,
-    get_driver_path,
     save_screenshot_as_png,
+    get_element_until_present,
     save_performance_brief_to_csv,
 )
 from logger import logger
@@ -495,8 +493,13 @@ class Crawler:
                 # save `績效摘要` table as csv
                 self._save_performance_brief(current_params_filename)
 
-            send_email('爬蟲執行完畢', '爬蟲執行完畢')
-            _ = input('\nPress any key to exit 🎉')
+            send_email(
+                '爬蟲執行完畢',
+                'finished period {} -> {}'.format(
+                    PARAMS_LOWER_LIMITS['period'], PARAMS_UPPER_LIMITS['period']
+                ),
+            )
+            # _ = input('\nPress any key to exit 🎉')
             self.driver.quit()
 
         except SystemExit:
