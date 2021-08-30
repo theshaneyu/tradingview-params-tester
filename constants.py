@@ -45,18 +45,37 @@ ParamIndexMapper = TypedDict(
 )
 
 
+# assertions
+assert os.getenv('PYTHON_ENV') is not None, "no 'PYTHON_ENV' found in .env"
+assert os.getenv('PYTHON_ENV') in (
+    'dev',
+    'prod',
+), "PYTHON_ENV can only be 'dev' or 'prod', found '{}'".format(os.getenv('PYTHON_ENV'))
+
+assert os.getenv('SEND_EMAIL') is not None, "no 'SEND_EMAIL' found in .env"
+assert os.getenv('SEND_EMAIL') in (
+    '0',
+    '1',
+), "SEND_EMAIL can only be '0' or '1', found '{}'".format(os.getenv('SEND_EMAIL'))
+
+assert len(sys.argv) == 3, 'must have exactly two system arguments'
+
+assert sys.argv[1] in (
+    'shane',
+    'kw',
+), "ACCOUNT can only be 'shane' or 'kw', found '{}'".format(sys.argv[1])
+
+assert sys.argv[2] in (
+    'ym',
+    'nq',
+), "CONTRACT can only be 'ym' or 'nq', found '{}'".format(sys.argv[2])
+
+
 # constants
 EXECUTION_TIME = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 
 SEND_EMAIL = os.getenv('SEND_EMAIL') == '1'
 
-assert SEND_EMAIL is not None, "no 'SEND_EMAIL' found in .env"
-assert SEND_EMAIL in (
-    '0',
-    '1',
-), "SEND_EMAIL can only be '0' or '1', found '{}'".format(SEND_EMAIL)
-
-# seconds to sleep after each iteration
 SEC_TO_SLEEP_FOR_IDENTICAL_REPORT = 0.2
 
 MAX_WAITING_SEC_FOR_IDENTICAL_REPORT = 5
@@ -67,28 +86,9 @@ LOG_PATH = os.path.join('logs', '{}.log'.format(EXECUTION_TIME))
 
 PYTHON_ENV = os.getenv('PYTHON_ENV')
 
-# assertions
-assert PYTHON_ENV is not None, "no 'PYTHON_ENV' found in .env"
-assert PYTHON_ENV in (
-    'dev',
-    'prod',
-), "PYTHON_ENV can only be 'dev' or 'prod', found '{}'".format(PYTHON_ENV)
-
-assert len(sys.argv) == 3, 'must have exactly two system arguments'
-
 ACCOUNT = sys.argv[1]
 
-assert ACCOUNT in (
-    'shane',
-    'kw',
-), "ACCOUNT can only be 'shane' or 'kw', found '{}'".format(ACCOUNT)
-
 CONTRACT = sys.argv[2]
-
-assert CONTRACT in (
-    'ym',
-    'nq',
-), "CONTRACT can only be 'ym' or 'nq', found '{}'".format(ACCOUNT)
 
 __PROD__ = PYTHON_ENV == 'prod'
 
