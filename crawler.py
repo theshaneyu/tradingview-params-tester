@@ -3,8 +3,10 @@ import sys
 import traceback
 from time import sleep
 from typing import Literal
+from utils.browser_helpers import get_element_until_present
 
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.action_chains import ActionChains
@@ -31,6 +33,7 @@ from constants import (
     SEC_TO_SLEEP_WHEN_STALE_ELEMENT_OCCUR,
 )
 from utils import (
+    email_sender,
     limit_checker,
     fill_input,
     send_email,
@@ -332,22 +335,28 @@ class Crawler:
 
     def _check_contract(self) -> None:
         contract_text = '納斯達克' if CONTRACT == 'nq' else '道瓊'
+        email_sent = False
 
-        if (
-            contract_text
-            not in self.driver.find_element_by_xpath(
+        while True:
+            title_element = get_element_until_present(
+                self.driver,
                 (
-                    '/html/body/div[2]/div[1]/div[2]/div[1]/div/table/tr[1]/'
-                    'td[2]/div/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]'
-                )
-            ).text
-        ):
-            # input contract and page contract mismatch
-            send_email(
-                'input contract and page contract mismatch 💥',
-                'input contract and page contract mismatch',
+                    '/html/body/div[2]/div[1]/div[2]/div[1]/div/table/'
+                    'tr[1]/td[2]/div/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]'
+                ),
             )
-            _ = input('please fix the error and continue')
+
+            if contract_text not in title_element.text:
+                # input contract and page contract mismatch
+                logger.error('input contract and page contract mismatch')
+                if not email_sent:
+                    send_email(
+                        'input contract and page contract mismatch 💥',
+                        'input contract and page contract mismatch',
+                    )
+                _ = input('please make sure the input contract and UI contract match 🐛')
+
+            break
 
     def handle_cookies(self) -> None:
         # load/save cookies

@@ -31,6 +31,16 @@ def wait_and_click(
     ).click()
 
 
+def get_element_until_present(
+    driver: WebDriver, path: str, by: Literal['xpath', 'css'] = 'xpath'
+) -> WebElement:
+    return WebDriverWait(driver, 20).until(
+        EC.presence_of_element_located(
+            (By.XPATH, path) if by == 'xpath' else (By.CSS_SELECTOR, path)
+        )
+    )
+
+
 def check_if_visible(driver: WebDriver, xpath: str) -> None:
     print('Waiting to be visible ...')
     WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, xpath)))
