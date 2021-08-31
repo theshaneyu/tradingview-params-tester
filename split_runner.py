@@ -7,6 +7,7 @@ import json
 import shutil
 import subprocess
 from pprint import pprint
+from datetime import datetime
 
 
 # from logger import logger
@@ -33,7 +34,7 @@ config['period']['upper_limit'] = (
 )
 
 with open('config.json', 'w', encoding='utf8') as wf:
-    json.dump(config, wf)
+    json.dump(config, wf, indent=4)
 
 print(
     'first stage period range: {} -> {}'.format(
@@ -41,17 +42,57 @@ print(
     )
 )
 
-# assert len(sys.argv) == 3, 'must have exactly 2 system args, found {}'.format(
-#     len(sys.argv)
-# )
+assert len(sys.argv) == 3, 'must have exactly 2 system args, found {}'.format(
+    len(sys.argv)
+)
 
-# subprocess.call(['python', 'crawler.py', sys.argv[1], sys.argv[2]])
+first_iter_filename = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+# subprocess.call(['pwd'])
+# sys.exit()
+subprocess.call(
+    [
+        os.path.join('venv', 'Scripts', 'python.exe'),
+        'crawler.py',
+        sys.argv[1],
+        sys.argv[2],
+    ]
+)
+
+# print('---------------')
+# pprint(config)
+
+# increase period's lower limit and upper limit
+config['period']['lower_limit'] = config['period']['upper_limit'] + 1
+
+config['period']['upper_limit'] = (
+    config['period']['upper_limit'] + half_period_iterations
+)
+
+# revise config.json
+with open('config.json', 'w', encoding='utf8') as wf:
+    json.dump(config, wf, indent=4)
+
+print(
+    'second stage period range: {} -> {}'.format(
+        config['period']['lower_limit'], config['period']['upper_limit']
+    )
+)
+
+second_iter_filename = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+subprocess.call(
+    [
+        os.path.join('venv', 'Scripts', 'python.exe'),
+        'crawler.py',
+        sys.argv[1],
+        sys.argv[2],
+    ]
+)
+
 
 # pprint(config)
 
-# config['period']['upper_limit'] = (
-#     config['period']['lower_limit'] + half_period_iterations
-# )
+# restore config.json
+shutil.copy(CONFIG_COPY_PATH, 'config.json')
 
-
-# pprint
+print('first_iter_filename: {}'.format(first_iter_filename))
+print('second_iter_filename: {}'.format(second_iter_filename))
