@@ -46,7 +46,7 @@ from utils import (
     get_element_until_present,
     save_performance_brief_to_csv,
 )
-from logger import logger
+from logger import logger, logger_only_stdout
 from shared_types import CurrentParams, Params
 from calculate_iterations import get_estamated_interations_and_time
 
@@ -252,7 +252,7 @@ class Crawler:
 
             except StaleElementReferenceException:
                 sleep(SEC_TO_SLEEP_WHEN_STALE_ELEMENT_OCCUR)
-                logger.warning(
+                logger_only_stdout.warning(
                     'stale element, element is not attached to the page document'
                 )
                 continue
