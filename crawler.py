@@ -76,7 +76,7 @@ class Crawler:
         self.estimated_total_iterations = get_estamated_interations_and_time(
             log_info=True
         )
-        self.current_iteration = 0
+        self.current_iteration = 1
         self.last_profit = ''
         self.last_win_rate = ''
         self.total_sec_been_waiting_for_report = 0.0
@@ -119,7 +119,7 @@ class Crawler:
         self,
         params_to_reset: Params,
         sec_to_sleep: float = 0,
-    ) -> None:
+    ) -> CurrentParams:
         for param in params_to_reset:
             input_element: WebElement = self.driver.find_element_by_xpath(
                 (
@@ -143,6 +143,11 @@ class Crawler:
         if sec_to_sleep != 0:
             sleep(sec_to_sleep)
         logger.info('Parameter reset {}'.format(params_to_reset))
+
+        # get the current params from the browser
+        current_params = self._get_current_params_from_browser()
+
+        return current_params
 
     def _hover_params_input(self, sec_to_sleep: float = 0) -> None:
         period_adjustment_element = self.driver.find_element_by_xpath(
@@ -247,6 +252,8 @@ class Crawler:
 
                 # check if `超過裝置上限` happened
                 limit_checker.check('{},{}'.format(profit, win_rate))
+
+                # print('{} -> {} | {}'.format(str(current_params), profit, win_rate))
 
                 return append_params_csv(current_params, profit, win_rate)
 
@@ -374,6 +381,41 @@ class Crawler:
         self.driver.get(URL)
         self._check_contract()
 
+    def _iteration_process(
+        self,
+        iteration_type: Literal['TAKE_PROFIT', 'AMPLIFICATION', 'PERIOD'],
+        current_params: CurrentParams,
+    ) -> CurrentParams:
+        if iteration_type == 'TAKE_PROFIT':
+            # increase the `long_take_profit` but NOT to hit ENTER
+            self._increase_param('long_take_profit', current_params, press_enter=False)
+            # increase the `short_take_profit` and hit ENTER
+            self._increase_param('short_take_profit', current_params)
+
+        elif iteration_type == 'AMPLIFICATION':
+            # increase the `amplification` and press ENTER
+            self._increase_param('amplification', current_params)
+
+        elif iteration_type == 'PERIOD':
+            # increase the `period` and press ENTER
+            self._increase_param('period', current_params)
+
+        # get the current params from the browser
+        current_params = self._get_current_params_from_browser()
+
+        # save profit and win rate data from the browser
+        csv_line = self._save_profit_and_win_rate_to_csv(current_params)
+
+        self.current_iteration += 1
+
+        print_current_info(
+            csv_line,
+            self.current_iteration,
+            self.estimated_total_iterations,
+        )
+
+        return current_params
+
     def main(self) -> None:
         try:
             self.launch_browser_and_visit_url()
@@ -386,87 +428,59 @@ class Crawler:
             self._click_gearwheel(sec_to_sleep=1)
 
             # reset all params
-            self._reset_params(params_to_reset=PARAMS, sec_to_sleep=1)
+            current_params = self._reset_params(params_to_reset=PARAMS, sec_to_sleep=1)
 
-            # track the current params
-            # period, amplification, long_take_profit, short_take_profit
-            current_params = self._get_current_params_from_browser()
+            # save profit and win rate data from the browser
+            csv_line = self._save_profit_and_win_rate_to_csv(current_params)
 
-            while float(current_params['period']) <= PARAMS_UPPER_LIMITS['period']:
-                # # the loop of period
-                # increased_period = self._increase_param('period', current_params)
-                # current_params['period'] = str(increased_period)
-                # sleep(SEC_TO_SLEEP_PER_ITERATION)
+            print_current_info(
+                csv_line,
+                self.current_iteration,
+                self.estimated_total_iterations,
+            )
 
-                while (
-                    float(current_params['amplification'])
-                    <= PARAMS_UPPER_LIMITS['amplification']
-                ):
-                    while (
-                        float(current_params['long_take_profit'])
-                        <= PARAMS_UPPER_LIMITS['long_take_profit']
+            while True:
+                while True:
+                    while True:
+                        # beginning of long/short take profit's loop
+                        current_params = self._iteration_process(
+                            'TAKE_PROFIT', current_params
+                        )
+
+                        if (
+                            float(current_params['long_take_profit'])
+                            >= PARAMS_UPPER_LIMITS['long_take_profit']
+                        ):
+                            break
+
+                    if (
+                        float(current_params['amplification'])
+                        >= PARAMS_UPPER_LIMITS['amplification']
                     ):
-                        # the loop of long/short take profit
-                        # increase the `long_take_profit` but NOT to hit ENTER
-                        self._increase_param(
-                            'long_take_profit', current_params, press_enter=False
-                        )
-                        # increase the `short_take_profit` and hit ENTER
-                        self._increase_param('short_take_profit', current_params)
-
-                        # sleep(SEC_TO_SLEEP_AFTER_INCREASING_PARAM)
-
-                        # set the current params from the browser
-                        current_params = self._get_current_params_from_browser()
-                        # save profit and win rate data from the browser
-                        csv_line = self._save_profit_and_win_rate_to_csv(current_params)
-                        self.current_iteration += 1
-                        print_current_info(
-                            csv_line,
-                            self.current_iteration,
-                            self.estimated_total_iterations,
-                        )
-
-                    # try to close the browser after each take profit loop
-
+                        break
                     # after finishing the loop of long/short take profit
                     # 1. first reset the long/short take profit
-                    self._reset_params(['long_take_profit', 'short_take_profit'], 1)
-                    # 2. increase the `amplification` and press ENTER
-                    self._increase_param('amplification', current_params)
-
-                    # sleep(SEC_TO_SLEEP_AFTER_INCREASING_PARAM)
-
-                    # 3. set the current params from the browser
-                    current_params = self._get_current_params_from_browser()
+                    current_params = self._reset_params(
+                        ['long_take_profit', 'short_take_profit'], 0.5
+                    )
+                    # 2. increase the `amplification` and hit ENTER
+                    # 3. get the current params from the browser
                     # 4. save profit and win_rate from the browser
-                    csv_line = self._save_profit_and_win_rate_to_csv(current_params)
-                    self.current_iteration += 1
-                    print_current_info(
-                        csv_line,
-                        self.current_iteration,
-                        self.estimated_total_iterations,
+                    current_params = self._iteration_process(
+                        'AMPLIFICATION', current_params
                     )
 
+                if float(current_params['period']) >= PARAMS_UPPER_LIMITS['period']:
+                    break
                 # after finishing the loop of amplification
                 # 1. first reset the amplification and long/short take profit
-                self._reset_params(['long_take_profit', 'short_take_profit'], 1)
-                self._reset_params(['amplification'], 1)
-                # 2. increase the `period` and press ENTER
-                self._increase_param('period', current_params)
-
-                # sleep(SEC_TO_SLEEP_AFTER_INCREASING_PARAM)
-
-                # 3. set the current params from the browser
-                current_params = self._get_current_params_from_browser()
-                # 4. save profit and win_rate from the browser
-                csv_line = self._save_profit_and_win_rate_to_csv(current_params)
-                self.current_iteration += 1
-                print_current_info(
-                    csv_line,
-                    self.current_iteration,
-                    self.estimated_total_iterations,
+                current_params = self._reset_params(
+                    ['long_take_profit', 'short_take_profit', 'amplification'], 0.5
                 )
+                # 2. increase the `period` and press ENTER
+                # 3. set the current params from the browser
+                # 4. save profit and win_rate from the browser
+                current_params = self._iteration_process('PERIOD', current_params)
 
             # # track the current params
             # current_params = self._get_current_params()
