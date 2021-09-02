@@ -2,7 +2,7 @@ import os
 import sys
 import traceback
 from time import sleep
-from typing import Literal, Set, Tuple
+from typing import Literal, Tuple, Set
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -359,30 +359,85 @@ class Crawler:
         if press_enter:
             element_to_fill.send_keys(Keys.RETURN)
 
+    def _select_correct_contract(self) -> None:
+        toolbar_watchlist_icon_xpath = (
+            '/html/body/div[2]/div[5]/div/div[2]/div/div/div/div/div[1]/span'
+        )
+        # right-hand toolbar
+        if 'isGrayed' not in get_element_until_present(
+            self.driver, '/html/body/div[2]/div[5]/div/div[2]/div/div/div/div'
+        ).get_attribute("class"):
+            # right sidebar is close, then click the icon and open it
+            self.driver.find_element_by_xpath(toolbar_watchlist_icon_xpath).click()
+            sleep(0.5)
+
+        # find the correct contract
+        index = 2
+        found = False
+        while True:
+            try:
+                contract_element: WebElement = self.driver.find_element_by_xpath(
+                    '/html/body/div[2]/div[5]/div/div[1]/div[1]/div[1]/div[1]/div[2]/div/div[2]/div/div[2]/div/div[{}]/div/div/div[2]/span/span[1]'.format(
+                        index
+                    )
+                )
+                if '{}1!'.format(CONTRACT.upper()) in contract_element.text:
+                    # found the correct contract
+                    found = True
+                    break
+
+                index += 1
+
+            except NoSuchElementException:
+                # reached the end of the contract list
+                break
+
+        if not found:
+            self.driver.quit()
+            raise Exception(
+                'contract "{}1!" was not found in the right toolbar'.format(
+                    CONTRACT.upper()
+                )
+            )
+
+        contract_element.click()
+        sleep(0.5)
+
+        # click the toolbar watchlist icon again to close the toolbar
+        self.driver.find_element_by_xpath(toolbar_watchlist_icon_xpath).click()
+        sleep(0.2)
+
     def _check_contract(self) -> None:
-        contract_text = '納斯達克' if CONTRACT == 'nq' else '道瓊'
-        email_sent = False
+        contract_text = 'E-迷你納斯達克' if CONTRACT == 'nq' else 'E-迷你道瓊'
+        tried = False
 
         while True:
-            title_element = get_element_until_present(
+            title_text = get_element_until_present(
                 self.driver,
                 (
                     '/html/body/div[2]/div[1]/div[2]/div[1]/div/table/'
                     'tr[1]/td[2]/div/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]'
                 ),
-            )
+            ).text
 
-            if contract_text not in title_element.text:
+            # logger.debug('title_element: ', title_text)
+            if contract_text not in title_text:
                 # input contract and page contract mismatch
-                logger.error('input contract and page contract mismatch')
-                if not email_sent:
-                    send_email(
-                        'input contract and page contract mismatch 💥',
-                        'input contract and page contract mismatch',
+                if tried:
+                    logger.error(
+                        'fail to select the correct contract in the right toolbar ⚠️'
                     )
-                _ = input('please make sure the input contract and UI contract match 🐛')
+                    input('please fix the UI and press any key to continue')
+
+                logger.info('input contract and UI contract mismatch')
+                logger.info('input: {}, but found: {}'.format(CONTRACT, title_text))
+                logger.info('start trying to change contract in right-hand toolbar')
+                self._select_correct_contract()
+                tried = True
+                continue
 
             break
+        logger.info('change contract to "{}" successfully'.format(title_text))
 
     def handle_cookies(self) -> None:
         # load/save cookies
@@ -440,7 +495,7 @@ class Crawler:
     def main(self) -> None:
         try:
             self.launch_browser_and_visit_url()
-            _ = input('check the TradingView web UI, then press any key to start 🚀')
+            # _ = input('check the TradingView web UI, then press any key to start 🚀')
 
             # hover over the FDC_NQ area in order to show the gearwheel
             self._hover_fdc_nq(sec_to_sleep=1)
