@@ -219,6 +219,7 @@ class Crawler:
                             profit
                         )
                     )
+                    sleep(0.5)
                     continue
 
                 self.profits_caught_after_reset.clear()
@@ -451,11 +452,39 @@ class Crawler:
         else:
             load_cookie(self.driver, COOKIE_PATH)
 
+    def _check_summary(self) -> None:
+        tried = False
+        # check if the report area is visible on the UI
+        while True:
+            if 'active' not in self.driver.find_element_by_xpath(
+                '//*[@id="footer-chart-panel"]/div[1]/div[1]/div[4]'
+            ).get_attribute('class'):
+                # `策略測試器` button is not active
+                if tried:
+                    # had tried, but fail again
+                    send_email('fail to toggle "策略測試器" 💔', traceback.format_exc())
+                    input('fail to toggle "策略測試器" 💔')
+
+                # `策略測試器` is not shown, then click the span to toggle it
+                logger.info(
+                    'report area is not shown on the UI, try to click the span to toggle it'
+                )
+                self.driver.find_element_by_xpath(
+                    '//*[@id="footer-chart-panel"]/div[1]/div[1]/div[4]/div/span'
+                ).click()
+                tried = True
+                sleep(0.5)
+
+            break
+
+        logger.info('report area is shown on the UI')
+
     def launch_browser_and_visit_url(self) -> None:
         self.driver.get(URL)
         self.handle_cookies()
         self.driver.get(URL)
         self._check_contract()
+        self._check_summary()
 
     def _iteration_process(
         self,
