@@ -8,6 +8,9 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 
+from constants import CONTRACT
+from logger import logger
+
 
 def save_cookie(driver: WebDriver, path: str) -> None:
     with open(path, "wb") as filehandler:
@@ -42,9 +45,11 @@ def get_element_until_present(
 
 
 def check_if_visible(driver: WebDriver, xpath: str) -> None:
-    print('Waiting to be visible ...')
+    logger.info(
+        'waiting for "FDC_{}" indicator to be visible ...'.format(CONTRACT.upper())
+    )
     WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.XPATH, xpath)))
-    print('Visible')
+    logger.info('"FDC_{}" indicator is visible'.format(CONTRACT.upper()))
 
 
 def fill_input(element_to_fill: WebElement, to_fill: str) -> None:
