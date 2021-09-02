@@ -2,7 +2,7 @@ import os
 import sys
 import traceback
 from time import sleep
-from typing import Literal
+from typing import Literal, Set, Tuple
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -80,6 +80,7 @@ class Crawler:
         self.last_profit = ''
         self.last_win_rate = ''
         self.total_sec_been_waiting_for_report = 0.0
+        self.profits_caught_after_reset: Set[str] = set()
 
     def _set_driver(self) -> None:
         options = webdriver.ChromeOptions()
@@ -119,6 +120,7 @@ class Crawler:
         self,
         params_to_reset: Params,
         sec_to_sleep: float = 0,
+        collect_garbage_profit: bool = False,
     ) -> CurrentParams:
         for param in params_to_reset:
             input_element: WebElement = self.driver.find_element_by_xpath(
@@ -143,6 +145,10 @@ class Crawler:
         if sec_to_sleep != 0:
             sleep(sec_to_sleep)
         logger.info('Parameter reset {}'.format(params_to_reset))
+
+        if collect_garbage_profit:
+            profit, _ = self._get_profit_and_win_rate()
+            self.profits_caught_after_reset.add(profit)
 
         # get the current params from the browser
         current_params = self._get_current_params_from_browser()
@@ -196,7 +202,7 @@ class Crawler:
         if sec_to_sleep != 0:
             sleep(sec_to_sleep)
 
-    def _save_profit_and_win_rate_to_csv(self, current_params: CurrentParams) -> str:
+    def _get_profit_and_win_rate(self) -> Tuple[str, str]:
         while True:
             try:
                 profit: str = self.driver.find_element_by_css_selector(
@@ -206,6 +212,17 @@ class Crawler:
                     )
                 ).text
                 profit = profit.replace('$ ', '')
+
+                if profit in self.profits_caught_after_reset:
+                    logger.info(
+                        'skipping mis-captured profit from params reset: {}'.format(
+                            profit
+                        )
+                    )
+                    continue
+
+                self.profits_caught_after_reset.clear()
+
                 win_rate: str = self.driver.find_element_by_css_selector(
                     (
                         'div.backtesting-content-wrapper > div > '
@@ -255,7 +272,7 @@ class Crawler:
 
                 # print('{} -> {} | {}'.format(str(current_params), profit, win_rate))
 
-                return append_params_csv(current_params, profit, win_rate)
+                return profit, win_rate
 
             except StaleElementReferenceException:
                 sleep(SEC_TO_SLEEP_WHEN_STALE_ELEMENT_OCCUR)
@@ -266,6 +283,10 @@ class Crawler:
 
             except NoSuchElementException:
                 _ = input('please fix the UI and press any key to continue')
+
+    def _save_profit_and_win_rate_to_csv(self, current_params: CurrentParams) -> str:
+        profit, win_rate = self._get_profit_and_win_rate()
+        return append_params_csv(current_params, profit, win_rate)
 
     def _screenshot_backtest_result(self, params_filename: str) -> None:
         backtest_results_element = self.driver.find_element_by_css_selector(
@@ -461,7 +482,9 @@ class Crawler:
                     # after finishing the loop of long/short take profit
                     # 1. first reset the long/short take profit
                     current_params = self._reset_params(
-                        ['long_take_profit', 'short_take_profit'], 0.5
+                        ['long_take_profit', 'short_take_profit'],
+                        0.5,
+                        collect_garbage_profit=True,
                     )
                     # 2. increase the `amplification` and hit ENTER
                     # 3. get the current params from the browser
@@ -475,7 +498,9 @@ class Crawler:
                 # after finishing the loop of amplification
                 # 1. first reset the amplification and long/short take profit
                 current_params = self._reset_params(
-                    ['long_take_profit', 'short_take_profit', 'amplification'], 0.5
+                    ['long_take_profit', 'short_take_profit', 'amplification'],
+                    0.5,
+                    collect_garbage_profit=True,
                 )
                 # 2. increase the `period` and press ENTER
                 # 3. set the current params from the browser
