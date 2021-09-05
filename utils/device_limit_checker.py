@@ -1,6 +1,9 @@
 from .email_sender import send_email
 
 
+IDENTICAL_NUMBER_COUNTER_MAX = 300
+
+
 class DeviceLimitChecker:
     def __init__(self) -> None:
         self.last_profit_and_win_rate = ''
@@ -14,7 +17,7 @@ class DeviceLimitChecker:
         if profit_and_win_rate_str == self.last_profit_and_win_rate:
             self.duplication_counter += 1
 
-            if self.duplication_counter > 30:
+            if self.duplication_counter > IDENTICAL_NUMBER_COUNTER_MAX:
                 # get the same profit and win rate continuously
                 send_email('可能發生超過裝置上限', '可能發生超過裝置上限')
                 self.warning_email_sent = True
