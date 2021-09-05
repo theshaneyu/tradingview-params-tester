@@ -1,3 +1,4 @@
+import os
 import pickle
 from typing import Literal
 
@@ -10,6 +11,9 @@ from selenium.webdriver.support import expected_conditions as EC
 
 from constants import CONTRACT
 from logger import logger
+
+
+IS_MAC = os.name == 'posix'
 
 
 def save_cookie(driver: WebDriver, path: str) -> None:
@@ -53,6 +57,14 @@ def check_if_visible(driver: WebDriver, xpath: str) -> None:
 
 
 def fill_input(element_to_fill: WebElement, to_fill: str) -> None:
-    element_to_fill.send_keys(Keys.CONTROL + "a")
-    element_to_fill.send_keys(Keys.DELETE)
+    if IS_MAC:
+        while True:
+            element_to_fill.send_keys(Keys.BACK_SPACE)
+
+            if element_to_fill.get_attribute('value') == '':
+                break
+    else:
+        element_to_fill.send_keys(Keys.CONTROL + "a")
+        element_to_fill.send_keys(Keys.DELETE)
+
     element_to_fill.send_keys(to_fill)

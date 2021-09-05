@@ -131,16 +131,15 @@ class Crawler:
                     )
                 )
             )
-            input_element.send_keys(Keys.CONTROL + "a")
-            input_element.send_keys(Keys.DELETE)
-
-            # fill in the float is it's `amplification`, otherwise fill in the int
-            to_fill = (
-                PARAMS_LOWER_LIMITS[param]
-                if param == 'amplification'
-                else int(PARAMS_LOWER_LIMITS[param])
+            # fill in the float if it's `amplification`, otherwise fill in the int
+            to_fill = str(
+                (
+                    PARAMS_LOWER_LIMITS[param]
+                    if param == 'amplification'
+                    else int(PARAMS_LOWER_LIMITS[param])
+                )
             )
-            input_element.send_keys(str(to_fill))
+            fill_input(input_element, to_fill)
             sleep(0.5)
         if sec_to_sleep != 0:
             sleep(sec_to_sleep)
