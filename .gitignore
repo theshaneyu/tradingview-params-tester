@@ -6,6 +6,7 @@ config.json
 logs
 cookies
 backups
+.vscode
 
 # conventional config starts from below
 
