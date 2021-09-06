@@ -7,6 +7,7 @@ from email.utils import formataddr
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Optional, List
+import win32com.client as win32
 
 from constants import __PROD__, SEND_EMAIL
 
@@ -18,11 +19,13 @@ HOST = 'smtp.gmail.com'
 SENDER = 'mavenfadacai@gmail.com'
 TO = ['theshaneyu@smail.nchu.edu.tw']
 
+CHT_OA_HOSTNAME = 'DESKTOP-PCTPGF0'
+
 EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
 if EMAIL_PASSWORD is None:
     raise Exception('no email password found in .env')
 
-if __PROD__ and SEND_EMAIL:
+if __PROD__ and SEND_EMAIL and os.environ.get('COMPUTERNAME') != CHT_OA_HOSTNAME:
     with smtplib.SMTP(host="smtp.gmail.com", port=587) as smtp:
         try:
             smtp.ehlo()  # 驗證SMTP伺服器
@@ -41,17 +44,34 @@ def send_email(
     if not SEND_EMAIL:
         return
 
-    email_content = MIMEMultipart()
-    email_content["subject"] = subject
-    email_content["from"] = formataddr((str(Header('Maven 梅文', 'utf-8')), SENDER))
-    email_content["to"] = (
-        assign_receivers if assign_receivers is not None else ", ".join(TO)
-    )
-    email_content.attach(MIMEText(content))
+    if 'COMPUTERNAME' in os.environ and os.environ['COMPUTERNAME'] == CHT_OA_HOSTNAME:
+        # CHT OA, use native outlook app
+        outlook = win32.Dispatch('Outlook.Application')
+        mail = outlook.CreateItem(0)
+        mail.To = assign_receivers if assign_receivers is not None else ", ".join(TO)
+        mail.Subject = subject
+        mail.Body = content
+        # mail.HTMLBody = '<h2>HTML Message body</h2>'  # this field is optional
 
-    with smtplib.SMTP(host="smtp.gmail.com", port=587) as smtp_sender:
-        smtp_sender.ehlo()
-        smtp_sender.starttls()
-        smtp_sender.login(SENDER, str(EMAIL_PASSWORD))
-        smtp_sender.send_message(email_content)
-        logger.info('email sent')
+        # To attach a file to the email (optional):
+        # attachment = "Path to the attachment"
+        # mail.Attachments.Add(attachment)
+
+        mail.Send()
+        logger.info("email sent from CHT OA's outlook")
+
+    else:
+        email_content = MIMEMultipart()
+        email_content["subject"] = subject
+        email_content["from"] = formataddr((str(Header('Maven 梅文', 'utf-8')), SENDER))
+        email_content["to"] = (
+            assign_receivers if assign_receivers is not None else ", ".join(TO)
+        )
+        email_content.attach(MIMEText(content))
+
+        with smtplib.SMTP(host="smtp.gmail.com", port=587) as smtp_sender:
+            smtp_sender.ehlo()
+            smtp_sender.starttls()
+            smtp_sender.login(SENDER, str(EMAIL_PASSWORD))
+            smtp_sender.send_message(email_content)
+            logger.info('email sent')
