@@ -436,8 +436,18 @@ class Crawler:
                 tried = True
                 continue
 
+            logger.info('change contract to "{}" successfully'.format(title_text))
             break
-        logger.info('change contract to "{}" successfully'.format(title_text))
+
+        # make sure the right toolbar is closed
+        if 'isGrayed' in get_element_until_present(
+            self.driver, '/html/body/div[2]/div[5]/div/div[2]/div/div/div/div'
+        ).get_attribute("class"):
+            # right sidebar is not close, then click the icon to close it
+            self.driver.find_element_by_xpath(
+                ('/html/body/div[2]/div[5]/div/div[2]/div/div/div/div/div[1]/span')
+            ).click()
+            sleep(0.5)
 
     def handle_cookies(self) -> None:
         # load/save cookies
