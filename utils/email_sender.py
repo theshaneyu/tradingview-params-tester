@@ -36,7 +36,7 @@ if __PROD__ and SEND_EMAIL:
 
 
 def send_email(
-    subject: str, content: str, assign_receivers: Optional[List['str']] = None
+    subject: str, content: str, assign_receivers: Optional[List[str]] = None
 ) -> None:
     if not SEND_EMAIL:
         return
