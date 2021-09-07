@@ -131,10 +131,12 @@ with open('config.json', 'r', encoding='utf8') as rf:
     config = json.load(rf)
 
 
+sr_logger.info('finished the entire script 🎉')
+sr_logger.info('ACCOUNT: {} | CONTRACT: {}'.format(sys.argv[1], sys.argv[2]))
 sr_logger.info(
-    'finished the entire script, period range: {} -> {}'.format(
+    'period range: {} -> {}'.format(
         config['period']['lower_limit'], config['period']['upper_limit']
     )
 )
-sr_logger.info('first_iter_filename: {}'.format(first_iter_filename))
-sr_logger.info('second_iter_filename: {}'.format(second_iter_filename))
+sr_logger.info('first iteration start time: {}'.format(first_iter_filename))
+sr_logger.info('second iteration start time: {}'.format(second_iter_filename))
