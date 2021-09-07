@@ -11,55 +11,53 @@ generated csv:
 
 import os
 import sys
-
-folder_list = sys.argv[1:]
-
-print('merging: {}'.format(' & '.join(folder_list)))
-
-result_list: list = []
-
-for folder in sys.argv[1:]:
-    if os.path.exists(os.path.join('results', 'ym', folder)):
-        contract_folder = 'ym'
-    else:
-        contract_folder = 'nq'
-
-    with open(
-        os.path.join(
-            'results', contract_folder, folder, 'params', '{}.csv'.format(folder)
-        ),
-        'r',
-        encoding='utf8',
-    ) as rf:
-        for line in rf:
-            if 'Profit,WinRate' in line:
-                if folder_list.index(folder) == 0:
-                    result_list.append(line)
-                continue
-
-            result_list.append(line)
+from logging import Logger
 
 
 if not os.path.exists(os.path.join('results', 'merged')):
     os.makedirs(os.path.join('results', 'merged'))
 
-if not os.path.exists(os.path.join('results', 'merged', contract_folder)):
-    os.makedirs(os.path.join('results', 'merged', contract_folder))
 
-with open(
-    os.path.join(
-        'results', 'merged', contract_folder, '{}.csv'.format('+'.join(folder_list))
-    ),
-    'w',
-    encoding='utf8',
-) as wf:
-    for line in result_list:
-        wf.write(line)
+def merge_results(
+    first_half_folder: str, second_half_folder: str, logger: Logger
+) -> None:
+    folder_list = [first_half_folder, second_half_folder]
 
-print(
-    'merged file generated at "{}"'.format(
-        os.path.join(
-            'results', 'merged', contract_folder, '{}.csv'.format('+'.join(folder_list))
-        )
+    logger.info('merging: {}'.format(' & '.join(folder_list)))
+
+    result_list: list = []
+
+    for folder in folder_list:
+        if os.path.exists(os.path.join('results', 'ym', folder)):
+            contract_folder = 'ym'
+        else:
+            contract_folder = 'nq'
+
+        with open(
+            os.path.join(
+                'results', contract_folder, folder, 'params', '{}.csv'.format(folder)
+            ),
+            'r',
+            encoding='utf8',
+        ) as rf:
+            for line in rf:
+                if 'Profit,WinRate' in line:
+                    if folder_list.index(folder) == 0:
+                        result_list.append(line)
+                    continue
+
+                result_list.append(line)
+
+    merged_filepath = os.path.join(
+        'results', 'merged', '{}.csv'.format('+'.join(folder_list))
     )
-)
+
+    with open(
+        merged_filepath,
+        'w',
+        encoding='utf8',
+    ) as wf:
+        for line in result_list:
+            wf.write(line)
+
+    logger.info('merged file generated at "{}"'.format(merged_filepath))
