@@ -10,6 +10,8 @@ import subprocess
 from pprint import pprint
 from datetime import datetime
 
+from merge_results import merge_results
+
 
 assert len(sys.argv) == 3, 'must have exactly 2 system args, found {}'.format(
     len(sys.argv)
@@ -140,3 +142,5 @@ sr_logger.info(
 )
 sr_logger.info('first iteration start time: {}'.format(first_iter_filename))
 sr_logger.info('second iteration start time: {}'.format(second_iter_filename))
+
+merge_results(first_iter_filename, second_iter_filename, sys.argv[2], sr_logger)
