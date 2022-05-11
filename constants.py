@@ -60,16 +60,6 @@ assert os.getenv('SEND_EMAIL') in (
 
 assert len(sys.argv) == 3, 'must have exactly two system arguments'
 
-assert sys.argv[1] in (
-    'shane',
-    'kw',
-), "ACCOUNT can only be 'shane' or 'kw', found '{}'".format(sys.argv[1])
-
-assert sys.argv[2] in (
-    'ym',
-    'nq',
-), "CONTRACT can only be 'ym' or 'nq', found '{}'".format(sys.argv[2])
-
 
 # constants
 EXECUTION_TIME = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')

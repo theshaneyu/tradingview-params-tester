@@ -1,7 +1,5 @@
 import os
-import sys
 import smtplib
-import traceback
 from email.header import Header
 from email.utils import formataddr
 from email.mime.text import MIMEText
@@ -10,32 +8,17 @@ from typing import Optional, List
 import win32com.client as win32
 
 from constants import __PROD__, SEND_EMAIL
-
 from logger import logger
 
 
 PORT = 587
 HOST = 'smtp.gmail.com'
-SENDER = 'mavenfadacai@gmail.com'
-TO = ['theshaneyu@smail.nchu.edu.tw']
+SENDER = os.getenv('EMAIL_SENDER')
+TO = [os.getenv('EMAIL_RECEIVER')]
 
-CHT_OA_HOSTNAME = 'DESKTOP-PCTPGF0'
+CHT_OA_HOSTNAME = os.getenv('CHT_OA_HOSTNAME')
 
 EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
-if EMAIL_PASSWORD is None:
-    raise Exception('no email password found in .env')
-
-if __PROD__ and SEND_EMAIL and os.environ.get('COMPUTERNAME') != CHT_OA_HOSTNAME:
-    with smtplib.SMTP(host="smtp.gmail.com", port=587) as smtp:
-        try:
-            smtp.ehlo()  # 驗證SMTP伺服器
-            smtp.starttls()  # 建立加密傳輸
-            smtp.login(SENDER, str(EMAIL_PASSWORD))  # 登入寄件者gmail
-            logger.info('SMTP log in successfully')
-        except Exception:
-            logger.info(traceback.format_exc())
-            logger.info('SMTP fail to log in')
-            sys.exit()
 
 
 def send_email(
